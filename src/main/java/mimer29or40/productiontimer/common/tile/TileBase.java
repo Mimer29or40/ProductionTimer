@@ -1,215 +1,135 @@
 package mimer29or40.productiontimer.common.tile;
 
-import net.minecraft.block.Block;
+import mimer29or40.productiontimer.common.registry.IRegisterGui;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.EnumSkyBlock;
+import net.minecraft.util.ITickable;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.world.IWorldNameable;
 
-public class TileBase extends TileEntity
+import javax.annotation.Nullable;
+
+public abstract class TileBase extends TileEntity implements ITickable, IWorldNameable, IRegisterGui
 {
-    protected String         customName;
-    protected NBTTagCompound machineItemData;
-    protected EnumFacing forward = EnumFacing.NORTH;
+    private static final String TAG_CUSTOM_NAME = "CustomName";
 
-//    @Override
-//    public Packet getDescriptionPacket()
-//    {
-//        NBTTagCompound data = new NBTTagCompound();
-//        writeToNBT(data);
-//        initMachineData();
-//        return new SPacketUpdateTileEntity(this.pos, 1, data);
-//    }
+    protected String customName;
 
-    @Override
-    public void onDataPacket(NetworkManager networkManager, SPacketUpdateTileEntity s35PacketUpdateTileEntity)
+    public void markDirtyClient()
     {
-        readFromNBT(s35PacketUpdateTileEntity.getNbtCompound());
-        worldObj.markBlockRangeForRenderUpdate(this.pos, this.pos);
-        markForUpdate();
-    }
-
-    public void initMachineData()
-    {
-
-    }
-
-    public void markForUpdate()
-    {
-//        if (this.renderedFragment > 0)
-//        {
-//            this.renderedFragment |= 0x1;
-//        }
-        /*else*/
-        if (this.worldObj != null)
+        markDirty();
+        if (worldObj != null)
         {
-            Block block = worldObj.getBlockState(this.pos).getBlock();
-            //todo: look at this, is it correct?
-            this.worldObj.notifyBlockUpdate(this.pos, worldObj.getBlockState(this.pos), worldObj.getBlockState(this.pos), 3);
-
-            int xCoord = this.pos.getX();
-            int yCoord = this.pos.getY();
-            int zCoord = this.pos.getZ();
-
-            this.worldObj.notifyBlockOfStateChange(new BlockPos(xCoord, yCoord - 1, zCoord), block);
-            this.worldObj.notifyBlockOfStateChange(new BlockPos(xCoord, yCoord + 1, zCoord), block);
-            this.worldObj.notifyBlockOfStateChange(new BlockPos(xCoord - 1, yCoord, zCoord), block);
-            this.worldObj.notifyBlockOfStateChange(new BlockPos(xCoord + 1, yCoord, zCoord), block);
-            this.worldObj.notifyBlockOfStateChange(new BlockPos(xCoord, yCoord - 1, zCoord - 1), block);
-            this.worldObj.notifyBlockOfStateChange(new BlockPos(xCoord, yCoord - 1, zCoord + 1), block);
+            IBlockState state = worldObj.getBlockState(getPos());
+            worldObj.notifyBlockUpdate(getPos(), state, state, 3);
         }
     }
 
-    public void markForLightUpdate()
+    @Nullable
+    @Override
+    public SPacketUpdateTileEntity getUpdatePacket()
     {
-        if (this.worldObj.isRemote)
-        {
-            this.worldObj.notifyBlockUpdate(this.pos, worldObj.getBlockState(this.pos), worldObj.getBlockState(this.pos), 3);
-        }
-
-        this.worldObj.checkLightFor(EnumSkyBlock.BLOCK, this.pos);
-    }
-
-    public void onChunkLoad()
-    {
-        if (this.isInvalid())
-            this.validate();
-
-        markForUpdate();
+        NBTTagCompound updateTag = new NBTTagCompound();
+        writeClientNBT(updateTag);
+        return new SPacketUpdateTileEntity(getPos(), 1, updateTag);
     }
 
     @Override
-    public void onChunkUnload()
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet)
     {
-        if (!this.isInvalid())
-            this.invalidate();
+        super.onDataPacket(net, packet);
+        readClientNBT(packet.getNbtCompound());
+        markDirtyClient();
     }
 
-    public TileEntity getTile()
+    @Override
+    public NBTTagCompound getUpdateTag()
     {
-        return this;
+        NBTTagCompound updateTag = super.getUpdateTag();
+        writeClientNBT(updateTag);
+        return updateTag;
     }
 
-    public String getCustomName()
+    public void readClientNBT(NBTTagCompound compound)
     {
-        return this.customName;
+        readFromNBT(compound);
     }
 
-    public void setCustomName(String customName)
+    public void readCustomNBT(NBTTagCompound compound)
     {
-        this.customName = customName;
+        if (compound != null && compound.hasKey(TAG_CUSTOM_NAME))
+            customName = compound.getString(TAG_CUSTOM_NAME);
     }
 
+    @Override
+    public void readFromNBT(NBTTagCompound compound)
+    {
+        super.readFromNBT(compound);
+        readCustomNBT(compound);
+    }
+
+    public void writeClientNBT(NBTTagCompound compound)
+    {
+        writeToNBT(compound);
+    }
+
+    public void writeCustomNBT(NBTTagCompound compound)
+    {
+        if (hasCustomName())
+            compound.setString(TAG_CUSTOM_NAME, customName);
+    }
+
+    @Override
+    @Nullable
+    public NBTTagCompound writeToNBT(NBTTagCompound compound)
+    {
+        super.writeToNBT(compound);
+        writeCustomNBT(compound);
+        return compound;
+    }
+
+    @Override
+    public void update()
+    {
+
+    }
+
+    @Override
+    public String getName()
+    {
+        return this.hasCustomName() ? this.customName : getDefaultName();
+    }
+
+    public String getDefaultName()
+    {
+        return null;
+    }
+
+    @Override
     public boolean hasCustomName()
     {
-        return (this.customName != null) && (this.customName.length() > 0);
+        return this.customName != null && !this.customName.isEmpty();
     }
 
-    public String getUnlocalizedName()
+    @Override
+    public ITextComponent getDisplayName()
     {
-        Item item = Item.getItemFromBlock(worldObj.getBlockState(this.pos).getBlock());
-        ItemStack itemStack = new ItemStack(item, 1, getBlockMetadata());
-
-        return itemStack.getUnlocalizedName() + ".name";
+        return this.hasCustomName() ? new TextComponentString(this.getName()) : new TextComponentTranslation(this.getName());
     }
 
-    public void setName(String name)
+    public void setCustomName(String name)
     {
         this.customName = name;
+        markDirty();
+        if (hasWorldObj() && !worldObj.isRemote)
+            worldObj.notifyBlockUpdate(getPos(), worldObj.getBlockState(this.pos), worldObj.getBlockState(this.pos), 0);
+
     }
 
-//    @Override
-//    public void writeToNBT(NBTTagCompound nbtTagCompound)
-//    {
-//        super.writeToNBT(nbtTagCompound);
-//
-//        if (this.customName != null)
-//            nbtTagCompound.setString("CustomName", this.customName);
-//
-//        if (this.machineItemData != null)
-//            nbtTagCompound.setTag("MachineItemData", machineItemData);
-//
-//        if (canBeRotated())
-//        {
-//            nbtTagCompound.setInteger("forward", this.forward.ordinal());
-//        }
-//    }
-//
-//    @Override
-//    public void readFromNBT(NBTTagCompound nbtTagCompound)
-//    {
-//        super.readFromNBT(nbtTagCompound);
-//
-//        this.customName = nbtTagCompound.hasKey("CustomName") ? nbtTagCompound.getString("CustomName") : null;
-//        this.machineItemData = nbtTagCompound.hasKey("MachineItemData") ? nbtTagCompound.getCompoundTag("MachineItemData") : null;
-//
-//        if (canBeRotated())
-//        {
-//            this.forward = EnumFacing.values()[nbtTagCompound.getInteger("forward")];
-//        }
-//    }
-
-    public NBTTagCompound getMachineItemData()
-    {
-        return machineItemData;
-    }
-
-    public void setMachineItemData(NBTTagCompound machineItemData)
-    {
-        this.machineItemData = machineItemData;
-    }
-
-    public IBlockState getBlockState()
-    {
-        if (worldObj == null)
-            return null;
-
-        return worldObj.getBlockState(pos);
-    }
-
-//    @Override
-//    public List<String> getWailaHeadToolTip(ItemStack itemStack, List<String> currentTip, IWailaDataAccessor accessor, IWailaConfigHandler config)
-//    {
-//        if (customName != null)
-//            currentTip.add(String.format("%s%s%s", TextFormatting.BLUE, TextFormatting.ITALIC, customName));
-//
-//        return currentTip;
-//    }
-
-//    @Override
-//    public boolean canBeRotated()
-//    {
-//        return false;
-//    }
-//
-//    @Override
-//    public EnumFacing getForward()
-//    {
-//        return forward;
-//    }
-//
-//    @Override
-//    public void setOrientation(EnumFacing forward)
-//    {
-//        this.forward = forward;
-//        markDirty();
-//        markForUpdate();
-//    }
-//
-//    public void dropItems()
-//    {
-//        TileHelper.DropItems(this);
-//    }
-//
-//    @Override
-//    public EnumFacing getDirection()
-//    {
-//        return getForward();
-//    }
+    public void initTile() {}
 }

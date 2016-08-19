@@ -1,0 +1,6 @@
+{
+  "parent": "productiontimer:block/machineBase",
+  "textures": {
+    "front": "productiontimer:blocks/relay"
+  }
+}

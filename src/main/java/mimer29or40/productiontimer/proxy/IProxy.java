@@ -16,5 +16,9 @@ public interface IProxy
 
     void registerRenderers();
 
+    void registerNetwork();
+
+    void registerHandlers();
+
     void registerConfiguration(File configFile);
 }

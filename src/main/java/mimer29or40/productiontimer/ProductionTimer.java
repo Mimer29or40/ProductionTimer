@@ -16,13 +16,13 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.util.concurrent.TimeUnit;
 
-@Mod(modid = ModInfo.MOD_ID, name = ModInfo.MOD_NAME, certificateFingerprint = ModInfo.FINGERPRINT, dependencies = ModInfo.DEPENDENCIES, version = ModInfo.VERSION_BUILD)
+@Mod(modid = PTInfo.MOD_ID, name = PTInfo.MOD_NAME, certificateFingerprint = PTInfo.FINGERPRINT, dependencies = PTInfo.DEPENDENCIES, version = PTInfo.VERSION_BUILD)
 public class ProductionTimer
 {
-    @Mod.Instance(ModInfo.MOD_ID)
-    public static ProductionTimer productionTimer;
+    @Mod.Instance(PTInfo.MOD_ID)
+    public static ProductionTimer INSTANCE;
 
-    @SidedProxy(clientSide = ModInfo.CLIENT_PROXY_CLASS, serverSide = ModInfo.SERVER_PROXY_CLASS)
+    @SidedProxy(clientSide = PTInfo.CLIENT_PROXY_CLASS, serverSide = PTInfo.SERVER_PROXY_CLASS)
     public static IProxy proxy;
 
     public static Configuration configuration;
@@ -41,8 +41,6 @@ public class ProductionTimer
 
         proxy.registerConfiguration(event.getSuggestedConfigurationFile());
 
-//        PacketHandler.init();
-
         proxy.registerBlocks();
 
         proxy.registerItems();
@@ -52,6 +50,10 @@ public class ProductionTimer
         proxy.registerEvents();
 
         proxy.registerRenderers();
+
+        proxy.registerNetwork();
+
+        proxy.registerHandlers();
 
 //        IntegrationsManager.instance().index();
 //        IntegrationsManager.instance().preInit();
@@ -92,7 +94,7 @@ public class ProductionTimer
     @SubscribeEvent
     public void onConfigurationChangedEvent(ConfigChangedEvent.OnConfigChangedEvent event)
     {
-        if (event.getModID().equals(ModInfo.MOD_ID))
+        if (event.getModID().equals(PTInfo.MOD_ID))
         {
             Config.loadConfiguration();
         }

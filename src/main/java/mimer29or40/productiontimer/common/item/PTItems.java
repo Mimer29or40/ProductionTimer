@@ -1,6 +1,6 @@
 package mimer29or40.productiontimer.common.item;
 
-import mimer29or40.productiontimer.ModInfo;
+import mimer29or40.productiontimer.PTInfo;
 import mimer29or40.productiontimer.common.util.Log;
 import mimer29or40.productiontimer.common.util.Platform;
 import net.minecraftforge.fml.common.registry.GameRegistry;
@@ -13,9 +13,11 @@ public class PTItems
 {
     private static List<ItemBase> items = new ArrayList<>();
 
+    public static ItemWrench itemWrench;
+
     public static void registerItems()
     {
-
+        itemWrench = registerItem(new ItemWrench());
     }
 
     private static <I extends ItemBase> I registerItem(I item)
@@ -24,7 +26,7 @@ public class PTItems
         {
             String internalName = item.getInternalName();
 
-            item.setRegistryName(ModInfo.MOD_ID, internalName);
+            item.setRegistryName(PTInfo.MOD_ID, internalName);
             item.setUnlocalizedName(internalName);
 
             GameRegistry.register(item);

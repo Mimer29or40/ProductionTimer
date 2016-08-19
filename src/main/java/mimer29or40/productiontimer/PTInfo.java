@@ -1,6 +1,6 @@
 package mimer29or40.productiontimer;
 
-public class ModInfo
+public class PTInfo
 {
     public static final String PACKAGE_NAME       = "mimer29or40.";
     public static final String MOD_ID             = "productiontimer";
@@ -14,5 +14,5 @@ public class ModInfo
     public static final String GUI_FACTORY        = PACKAGE_NAME + MOD_ID + ".common.config.ConfigGuiFactory";
     public static final String PATH_INTEGRATIONS  = PACKAGE_NAME + MOD_ID + ".common.integrations.";
 
-    private ModInfo() {}
+    private PTInfo() {}
 }

@@ -1,14 +1,15 @@
 package mimer29or40.productiontimer.common.util;
 
-import mimer29or40.productiontimer.ModInfo;
+import mimer29or40.productiontimer.PTInfo;
 import net.minecraftforge.fml.common.FMLLog;
 import org.apache.logging.log4j.Level;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class Log
 {
     private static void log(Level level, String format, Object... object)
     {
-        FMLLog.log(ModInfo.MOD_NAME, level, format, object);
+        FMLLog.log(PTInfo.MOD_NAME, level, format, object);
     }
 
     public static void off(String format, Object... object)

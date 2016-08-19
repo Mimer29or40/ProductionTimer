@@ -1,6 +1,6 @@
 package mimer29or40.productiontimer.common.item;
 
-import mimer29or40.productiontimer.ModInfo;
+import mimer29or40.productiontimer.PTInfo;
 import mimer29or40.productiontimer.common.registry.IRegisterItemModel;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
@@ -22,7 +22,7 @@ public abstract class ItemBase extends Item implements IRegisterItemModel
     {
         String itemName = getUnwrappedUnlocalizedName(super.getUnlocalizedName());
 
-        String test = String.format("item.%s.%s", ModInfo.MOD_ID, itemName);
+        String test = String.format("item.%s.%s", PTInfo.MOD_ID, itemName);
         return test;
     }
 
@@ -31,7 +31,7 @@ public abstract class ItemBase extends Item implements IRegisterItemModel
     {
         String itemName = getUnwrappedUnlocalizedName(super.getUnlocalizedName(stack));
 
-        String test = String.format("item.%s.%s", ModInfo.MOD_ID, itemName);
+        String test = String.format("item.%s.%s", PTInfo.MOD_ID, itemName);
         return test;
     }
 
@@ -63,7 +63,7 @@ public abstract class ItemBase extends Item implements IRegisterItemModel
     @Override
     public void registerItemModel()
     {
-        final String resourcePath = String.format("%s:%s", ModInfo.MOD_ID, this.resourcePath);
+        final String resourcePath = String.format("%s:%s", PTInfo.MOD_ID, this.resourcePath);
 
         ModelLoader.setCustomModelResourceLocation(this, 0, new ModelResourceLocation(resourcePath, "inventory"));
     }
