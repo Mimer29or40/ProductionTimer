@@ -24,12 +24,14 @@ public class GuiControllerRelays extends GuiScreen
 
     private RelayList relayList;
 
+
+
     public GuiControllerRelays(GuiController parent)
     {
         this.parent = parent;
 
         xSize = 175;
-        ySize = 130;
+        ySize = 146;
     }
 
     @Override

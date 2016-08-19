@@ -44,7 +44,7 @@ public class PacketLinkRelay extends AbstractPacketThreadSafe
         TileEntity tile = world.getTileEntity(relayPos);
         if (tile instanceof TileRelay)
         {
-            ((TileRelay) tile).linkController(world, controllerPos);
+            ((TileRelay) tile).linkController(controllerPos);
             Log.info("Client %s", ((TileRelay) tile).getLinkedPos());
         }
     }
@@ -56,7 +56,7 @@ public class PacketLinkRelay extends AbstractPacketThreadSafe
         TileEntity tile = world.getTileEntity(relayPos);
         if (tile instanceof TileRelay)
         {
-            ((TileRelay) tile).linkController(world, controllerPos);
+            ((TileRelay) tile).linkController(controllerPos);
             PTNetwork.sendToAll(this);
             Log.info("Server %s", ((TileRelay) tile).getLinkedPos());
         }

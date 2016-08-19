@@ -147,7 +147,7 @@ public class ItemWrench extends ItemBase implements IRegisterRecipe
                 return EnumActionResult.FAIL;
             }
 
-            ConnectionType connectionToController = tileRelay.linkController(worldIn, storedPos);
+            ConnectionType connectionToController = tileRelay.linkController(storedPos);
 
             playerIn.addChatMessage(new TextComponentTranslation(connectionToController.getMessage()));
 

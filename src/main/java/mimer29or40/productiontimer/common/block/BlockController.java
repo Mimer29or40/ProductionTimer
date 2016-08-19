@@ -49,6 +49,19 @@ public class BlockController extends BlockMachine implements ITileEntityProvider
     }
 
     @Override
+    public void onBlockHarvested(World worldIn, BlockPos pos, IBlockState state, EntityPlayer player)
+    {
+        super.onBlockHarvested(worldIn, pos, state, player);
+
+        TileEntity tile = worldIn.getTileEntity(pos);
+        if (tile instanceof TileController)
+        {
+            TileController tileController = (TileController) tile;
+            tileController.unlinkRelays();
+        }
+    }
+
+    @Override
     public void registerRecipes()
     {
         GameRegistry.addShapelessRecipe(PTBlocks.blockController.getStack(1), PTBlocks.blockController.getStack(1));

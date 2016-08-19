@@ -5,7 +5,6 @@ import mimer29or40.productiontimer.PTInfo;
 import mimer29or40.productiontimer.common.registry.IRegisterBlockModel;
 import mimer29or40.productiontimer.common.tile.TileBase;
 import mimer29or40.productiontimer.common.util.Platform;
-import mimer29or40.productiontimer.common.util.WorldHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
@@ -109,14 +108,14 @@ public abstract class BlockBase extends Block implements IRegisterBlockModel
         if (player.capabilities.isCreativeMode)
         {
             TileEntity tile = worldIn.getTileEntity(pos);
-            if (tile instanceof TileBase)
-            {
-                ItemStack stack = new ItemStack(Item.getItemFromBlock(this));
-                NBTTagCompound tagCompound = new NBTTagCompound();
-                ((TileBase) tile).writeCustomNBT(tagCompound);
-                stack.setTagCompound(tagCompound);
-                WorldHelper.dropStack(worldIn, pos, stack);
-            }
+//            if (tile instanceof TileBase)
+//            {
+//                ItemStack stack = new ItemStack(Item.getItemFromBlock(this));
+//                NBTTagCompound tagCompound = new NBTTagCompound();
+//                ((TileBase) tile).writeCustomNBT(tagCompound);
+//                stack.setTagCompound(tagCompound);
+//                WorldHelper.dropStack(worldIn, pos, stack);
+//            }
         }
     }
 

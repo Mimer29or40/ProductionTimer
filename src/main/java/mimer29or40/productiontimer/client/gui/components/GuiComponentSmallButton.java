@@ -43,6 +43,12 @@ public class GuiComponentSmallButton extends Gui
 
         int i = enabled ? 1 : 0;
         drawTexturedModalRect(left, top, 10 * i, 16, width, height);
+        // 0
+        drawModalRectWithCustomSizedTexture(left, top, 3 * i, 41, 2, 2, 2, 2);
+        // 1
+        drawModalRectWithCustomSizedTexture(left + 2, top, 1 + 3 * i, 41, width - 4, 2, 1, 2);
+        // 2
+        drawModalRectWithCustomSizedTexture(left + width - 2, top, 1 + 3 * i, 41, 2, 2, 2, 2);
     }
 
     public boolean mousePressed(Minecraft mc, int mouseX, int mouseY)

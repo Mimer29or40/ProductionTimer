@@ -88,12 +88,12 @@ public class TileRelay extends TileMachine implements ISidedInventory
     /*
         Return true if block was linked
     */
-    public ConnectionType linkController(World world, BlockPos pos)
+    public ConnectionType linkController(BlockPos pos)
     {
         if (pos == null)
             return ConnectionType.FAILED;
 
-        TileEntity tile = world.getTileEntity(pos);
+        TileEntity tile = worldObj.getTileEntity(pos);
 
         if (!(tile instanceof TileController))
             return ConnectionType.NOTCONTROLLER;
@@ -104,6 +104,12 @@ public class TileRelay extends TileMachine implements ISidedInventory
             setLinkedPos(pos);
 
         return connectionToRelay;
+    }
+
+    public void unlinkController()
+    {
+        setLinkedPos(null);
+        markDirtyClient();
     }
 
     public void readCustomNBT(NBTTagCompound compound)

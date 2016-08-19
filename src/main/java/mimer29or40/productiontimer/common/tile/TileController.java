@@ -99,16 +99,40 @@ public class TileController extends TileMachine
         TileEntity tile = worldObj.getTileEntity(relayPos);
         if (tile instanceof TileRelay)
         {
-            Relay relay = new Relay(((TileRelay) tile).getName(), relayPos);
-            if (linkedRelays.contains(relay))
-                return ConnectionType.ALREADYLINKED;
+            Relay newRelay = new Relay(((TileRelay) tile).getName(), relayPos);
+//            if (linkedRelays.contains(newRelay))
+//                return ConnectionType.ALREADYLINKED;
 
-
-            linkedRelays.add(relay);
+            for (int i = 0; i < linkedRelays.size(); i++)
+            {
+                Relay relay = linkedRelays.get(i);
+                if (newRelay.getName().equals(relay.getName()) || newRelay.getPos().equals(relay.getPos()))
+                {
+                    linkedRelays.set(i, newRelay);
+                }
+                else
+                {
+                    linkedRelays.add(newRelay);
+                }
+            }
             markDirtyClient();
             return ConnectionType.LINKED;
         }
         return ConnectionType.NOTRELAY;
+    }
+
+    public void unlinkRelays()
+    {
+        for (Relay relay : linkedRelays)
+        {
+            TileEntity tile = worldObj.getTileEntity(relay.getPos());
+            if (tile != null && tile instanceof TileRelay)
+            {
+                ((TileRelay) tile).unlinkController();
+            }
+        }
+        linkedRelays.clear();
+        markDirtyClient();
     }
 
     public void readCustomNBT(NBTTagCompound compound)
