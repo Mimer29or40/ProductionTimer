@@ -19,11 +19,19 @@ import java.util.HashMap;
 
 public class RenderHelper
 {
+    public int initialHighlightTime = 1000;
     private final HashMap<BlockPos, Integer> blocksToHighlight = new HashMap<>();
 
     public void addBlockToHighLight(BlockPos pos)
     {
-        blocksToHighlight.put(pos, 1000);
+        if (blocksToHighlight.containsKey(pos))
+        {
+            blocksToHighlight.replace(pos, initialHighlightTime);
+        }
+        else
+        {
+            blocksToHighlight.put(pos, initialHighlightTime);
+        }
     }
 
     @SubscribeEvent
@@ -34,7 +42,7 @@ public class RenderHelper
         GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
         GlStateManager.disableTexture2D();
         GlStateManager.depthMask(false);
-        GlStateManager.disableDepth();
+//        GlStateManager.disableDepth();
 
         final EntityPlayer player = event.getPlayer();
         final World world = player.worldObj;
@@ -48,7 +56,8 @@ public class RenderHelper
 
             if (ticksLeft > 0)
             {
-                highlightBlock(player, pos, partialTicks, 0xFF, 0x00, 0x00, 0x10);
+                double alpha = (ticksLeft / (double) initialHighlightTime) * 100;
+                highlightBlock(player, pos, partialTicks, 0xFF, 0x00, 0x00, (int) alpha);
                 blocksToHighlight.replace(pos, ticksLeft - 1);
             }
             else
@@ -65,7 +74,6 @@ public class RenderHelper
                 blocksToHighlight.remove(pos);
             }
         }
-//        if (blocksToHighlight.size() == 0) blocksToHighlight.clear();
 
         GlStateManager.enableTexture2D();
         GlStateManager.enableAlpha();
@@ -80,12 +88,14 @@ public class RenderHelper
         final double y = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTicks;
         final double z = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks;
 
-        double x1 = blockPos.getX() - x     - 0.002D;
-        double y1 = blockPos.getY() - y     - 0.002D;
-        double z1 = blockPos.getZ() - z     - 0.002D;
-        double x2 = blockPos.getX() - x + 1 + 0.002D;
-        double y2 = blockPos.getY() - y + 1 + 0.002D;
-        double z2 = blockPos.getZ() - z + 1 + 0.002D;
+        double offset = 0.0001D;
+
+        double x1 = blockPos.getX() - x     - offset;
+        double y1 = blockPos.getY() - y     - offset;
+        double z1 = blockPos.getZ() - z     - offset;
+        double x2 = blockPos.getX() - x + 1 + offset;
+        double y2 = blockPos.getY() - y + 1 + offset;
+        double z2 = blockPos.getZ() - z + 1 + offset;
 
         Vec3d corner1 = new Vec3d(x1, y1, z1);
         Vec3d corner2 = new Vec3d(x2, y1, z1);

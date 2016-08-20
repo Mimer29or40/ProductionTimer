@@ -26,7 +26,7 @@ public class GuiControllerRelays extends GuiScreen
     protected int guiLeft;
     protected int guiTop;
 
-    private RelayList relayList;
+    private GuiComponentListRelay guiListRelay;
 
     GuiComponentButton buttonBack;
     GuiComponentButton buttonHighlight;
@@ -46,7 +46,7 @@ public class GuiControllerRelays extends GuiScreen
         guiLeft = (width - xSize) / 2;
         guiTop = (height - ySize) / 2;
 
-        relayList = new RelayList(guiLeft + 7, guiTop + 23, 161, 100, 26);
+        guiListRelay = new GuiComponentListRelay(guiLeft + 7, guiTop + 23, 161, 100, 26);
 
         buttonBack = new GuiComponentButton(0, guiLeft + 7, guiTop + 7, 40, 12, "Back");
         buttonHighlight = new GuiComponentButton(1, guiLeft + 57, guiTop + 7, 61, 12, "Highlight");
@@ -61,7 +61,7 @@ public class GuiControllerRelays extends GuiScreen
         int mouseX = Mouse.getEventX() * width / mc.displayWidth;
         int mouseY = height - Mouse.getEventY() * height / mc.displayHeight - 1;
 
-        relayList.handleMouseInput(mouseX, mouseY);
+        guiListRelay.handleMouseInput(mouseX, mouseY);
     }
 
     @Override
@@ -74,22 +74,20 @@ public class GuiControllerRelays extends GuiScreen
             mc.displayGuiScreen(parent);
         }
 
-        if (buttonHighlight.mouseOver(mouseX, mouseY) && relayList.selectedEntry != -1)
+        if (buttonHighlight.mouseOver(mouseX, mouseY) && guiListRelay.selectedEntry != -1)
         {
-//            buttonHighlight.selected = !buttonHighlight.selected;
-
-            Relay relay = relayList.relayList.get(relayList.selectedEntry);
+            Relay relay = guiListRelay.relayList.get(guiListRelay.selectedEntry);
             ProductionTimer.renderHelper.addBlockToHighLight(relay.getPos());
         }
 
         if (buttonUnlink.mouseOver(mouseX, mouseY))
         {
-            if (relayList.selectedEntry != -1)
+            if (guiListRelay.selectedEntry != -1)
             {
-                Relay relay = relayList.relayList.get(relayList.selectedEntry);
+                Relay relay = guiListRelay.relayList.get(guiListRelay.selectedEntry);
                 PTNetwork.sendToServer(new PacketUnlinkRelay(relay.getPos(), parent.tileController.getPos()));
-                relayList.relayList.remove(relayList.selectedEntry);
-                relayList.selectedEntry = -1;
+                guiListRelay.relayList.remove(guiListRelay.selectedEntry);
+                guiListRelay.selectedEntry = -1;
             }
         }
     }
@@ -99,7 +97,7 @@ public class GuiControllerRelays extends GuiScreen
     {
         drawDefaultBackground();
 
-        relayList.drawBackgroundLayer(mc, mouseX, mouseY);
+        guiListRelay.drawBackgroundLayer(mc, mouseX, mouseY);
 
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         ResourceLocation relayGuiTexture = new ResourceLocation(PTInfo.MOD_ID + ":textures/gui/controller_relay_list.png");
@@ -111,19 +109,13 @@ public class GuiControllerRelays extends GuiScreen
         buttonBack.drawBackgroundLayer(mc, mouseX, mouseY);
         buttonHighlight.drawBackgroundLayer(mc, mouseX, mouseY);
         buttonUnlink.drawBackgroundLayer(mc, mouseX, mouseY);
-
-//        if (relayList.selectedEntry != -1 && buttonHighlight.selected)
-//        {
-//            Relay relay = relayList.relayList.get(relayList.selectedEntry);
-//            RenderHelper.highlightBlock(mc.thePlayer, relay.getPos(), partialTicks, 0xDD, 0x00, 0x00, 0x99);
-//        }
     }
 
-    private class RelayList extends GuiComponentList
+    private class GuiComponentListRelay extends GuiComponentList
     {
         private ArrayList<Relay> relayList;
 
-        public RelayList(int left, int top, int width, int height, int entryHeight)
+        public GuiComponentListRelay(int left, int top, int width, int height, int entryHeight)
         {
             super(0, left, top, width, height, entryHeight);
             relayList = parent.tileController.getLinkedRelays();
