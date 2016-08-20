@@ -107,7 +107,7 @@ public abstract class TileBase extends TileEntity implements ITickable, IWorldNa
 
     public String getDefaultName()
     {
-        return null;
+        return "productiontimer.noname";
     }
 
     @Override

@@ -141,7 +141,7 @@ public class ItemWrench extends ItemBase implements IRegisterRecipe
 //                }
 
 
-            if (((TileRelay) tile).getName() == null)
+            if (!((TileRelay) tile).hasCustomName())
             {
                 playerIn.addChatComponentMessage(new TextComponentTranslation(ConnectionType.NEEDS_ID.getMessage()));
                 return EnumActionResult.FAIL;
