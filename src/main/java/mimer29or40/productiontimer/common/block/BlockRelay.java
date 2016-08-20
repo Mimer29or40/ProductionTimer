@@ -3,6 +3,8 @@ package mimer29or40.productiontimer.common.block;
 import mimer29or40.productiontimer.PTNames;
 import mimer29or40.productiontimer.ProductionTimer;
 import mimer29or40.productiontimer.common.container.ContainerMachine;
+import mimer29or40.productiontimer.common.network.PTNetwork;
+import mimer29or40.productiontimer.common.network.PacketUnlinkRelay;
 import mimer29or40.productiontimer.common.registry.IRegisterRecipe;
 import mimer29or40.productiontimer.common.tile.TileRelay;
 import net.minecraft.block.ITileEntityProvider;
@@ -52,7 +54,9 @@ public class BlockRelay extends BlockMachine implements ITileEntityProvider, IRe
     @Override
     public void breakBlock(World world, BlockPos pos, IBlockState blockstate)
     {
+
         TileRelay te = (TileRelay) world.getTileEntity(pos);
+        PTNetwork.sendToServer(new PacketUnlinkRelay(pos, te.getLinkedPos()));
         InventoryHelper.dropInventoryItems(world, pos, te);
         super.breakBlock(world, pos, blockstate);
     }

@@ -101,23 +101,18 @@ public class TileController extends TileMachine
         {
             Relay newRelay = new Relay(((TileRelay) tile).getName(), relayPos);
 
-            if (linkedRelays.contains(newRelay))
+            for (int i = 0; i < linkedRelays.size(); i++)
             {
-                for (int i = 0; i < linkedRelays.size(); i++)
+                Relay relay = linkedRelays.get(i);
+                if (newRelay.getName().equals(relay.getName()) || newRelay.getPos().equals(relay.getPos()))
                 {
-                    Relay relay = linkedRelays.get(i);
-                    if (newRelay.getName().equals(relay.getName()) || newRelay.getPos().equals(relay.getPos()))
-                    {
-                        linkedRelays.set(i, newRelay);
-                        markDirtyClient();
-                        return ConnectionType.RELAY_OVERWRITTEN;
-                    }
+                    linkedRelays.set(i, newRelay);
+                    markDirtyClient();
+                    return ConnectionType.RELAY_OVERWRITTEN;
                 }
             }
-            else
-            {
-                linkedRelays.add(newRelay);
-            }
+
+            linkedRelays.add(newRelay);
             markDirtyClient();
             return ConnectionType.LINKED;
         }

@@ -16,6 +16,11 @@ public class PacketUnlinkRelay extends AbstractPacketThreadSafe
 
     public PacketUnlinkRelay() {}
 
+    public PacketUnlinkRelay(BlockPos controllerPos)
+    {
+        this.controllerPos = controllerPos;
+    }
+
     public PacketUnlinkRelay(BlockPos relayPos, BlockPos controllerPos)
     {
         this.relayPos = relayPos;
@@ -43,7 +48,10 @@ public class PacketUnlinkRelay extends AbstractPacketThreadSafe
         TileEntity tile = world.getTileEntity(controllerPos);
         if (tile instanceof TileController)
         {
-            ((TileController) tile).unlinkRelay(relayPos);
+            if (relayPos == null)
+                ((TileController) tile).unlinkRelays();
+            else
+                ((TileController) tile).unlinkRelay(relayPos);
         }
     }
 
@@ -54,7 +62,11 @@ public class PacketUnlinkRelay extends AbstractPacketThreadSafe
         TileEntity tile = world.getTileEntity(controllerPos);
         if (tile instanceof TileController)
         {
-            ((TileController) tile).unlinkRelay(relayPos);
+            if (relayPos == null)
+                ((TileController) tile).unlinkRelays();
+            else
+                ((TileController) tile).unlinkRelay(relayPos);
+
             PTNetwork.sendToAll(this);
         }
     }
