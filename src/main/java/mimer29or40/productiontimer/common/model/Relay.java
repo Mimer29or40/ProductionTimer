@@ -42,4 +42,12 @@ public class Relay
     {
         return pos.getZ();
     }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        return o instanceof Relay &&
+               name.equals(((Relay) o).getName()) &&
+               pos.equals(((Relay) o).getPos());
+    }
 }

@@ -96,7 +96,7 @@ public class TileRelay extends TileMachine implements ISidedInventory
         TileEntity tile = worldObj.getTileEntity(pos);
 
         if (!(tile instanceof TileController))
-            return ConnectionType.NOTCONTROLLER;
+            return ConnectionType.NOT_CONTROLLER;
 
         ConnectionType connectionToRelay = ((TileController) tile).linkRelay(getPos());
 

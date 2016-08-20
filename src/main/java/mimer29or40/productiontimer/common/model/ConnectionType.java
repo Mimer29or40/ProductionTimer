@@ -3,13 +3,13 @@ package mimer29or40.productiontimer.common.model;
 public enum ConnectionType
 {
     SET("set", true),
-    NOTCONTROLLER("notcontroller", false),
-    NOTRELAY("notrelay", false),
+    NOT_CONTROLLER("not_controller", false),
+    NOT_RELAY("not_relay", false),
     LINKED("linked", true),
     FAILED("failed", false),
-    ALREADYLINKED("alreadylinked", false),
-    SAMEBLOCK("sameblock", false),
-    NEEDSID("needsid", false),
+    RELAY_OVERWRITTEN("relay_overwritten", true),
+    SAME_BLOCK("same_block", false),
+    NEEDS_ID("needs_id", false),
     ;
 
     private String  message;

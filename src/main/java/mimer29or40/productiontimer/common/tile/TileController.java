@@ -100,25 +100,28 @@ public class TileController extends TileMachine
         if (tile instanceof TileRelay)
         {
             Relay newRelay = new Relay(((TileRelay) tile).getName(), relayPos);
-//            if (linkedRelays.contains(newRelay))
-//                return ConnectionType.ALREADYLINKED;
 
-            for (int i = 0; i < linkedRelays.size(); i++)
+            if (linkedRelays.contains(newRelay))
             {
-                Relay relay = linkedRelays.get(i);
-                if (newRelay.getName().equals(relay.getName()) || newRelay.getPos().equals(relay.getPos()))
+                for (int i = 0; i < linkedRelays.size(); i++)
                 {
-                    linkedRelays.set(i, newRelay);
+                    Relay relay = linkedRelays.get(i);
+                    if (newRelay.getName().equals(relay.getName()) || newRelay.getPos().equals(relay.getPos()))
+                    {
+                        linkedRelays.set(i, newRelay);
+                        markDirtyClient();
+                        return ConnectionType.RELAY_OVERWRITTEN;
+                    }
                 }
-                else
-                {
-                    linkedRelays.add(newRelay);
-                }
+            }
+            else
+            {
+                linkedRelays.add(newRelay);
             }
             markDirtyClient();
             return ConnectionType.LINKED;
         }
-        return ConnectionType.NOTRELAY;
+        return ConnectionType.NOT_RELAY;
     }
 
     public void unlinkRelay(BlockPos pos)

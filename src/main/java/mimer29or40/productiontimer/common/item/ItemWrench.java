@@ -104,7 +104,7 @@ public class ItemWrench extends ItemBase implements IRegisterRecipe
         {
             if (((TileController) tile).getName() == null)
             {
-                playerIn.addChatComponentMessage(new TextComponentTranslation(ConnectionType.NEEDSID.getMessage()));
+                playerIn.addChatComponentMessage(new TextComponentTranslation(ConnectionType.NEEDS_ID.getMessage()));
                 return EnumActionResult.FAIL;
             }
             setPosition(stack, pos);
@@ -119,7 +119,7 @@ public class ItemWrench extends ItemBase implements IRegisterRecipe
 
             if (getPosition(stack) == null)
             {
-                playerIn.addChatMessage(new TextComponentTranslation(ConnectionType.NOTCONTROLLER.getMessage()));
+                playerIn.addChatMessage(new TextComponentTranslation(ConnectionType.NOT_CONTROLLER.getMessage()));
                 return EnumActionResult.FAIL;
             }
 
@@ -127,7 +127,7 @@ public class ItemWrench extends ItemBase implements IRegisterRecipe
 
             if (storedPos.equals(pos))
             {
-                playerIn.addChatMessage(new TextComponentTranslation(ConnectionType.SAMEBLOCK.getMessage()));
+                playerIn.addChatMessage(new TextComponentTranslation(ConnectionType.SAME_BLOCK.getMessage()));
                 return EnumActionResult.FAIL;
             }
 
@@ -143,7 +143,7 @@ public class ItemWrench extends ItemBase implements IRegisterRecipe
 
             if (((TileRelay) tile).getName() == null)
             {
-                playerIn.addChatComponentMessage(new TextComponentTranslation(ConnectionType.NEEDSID.getMessage()));
+                playerIn.addChatComponentMessage(new TextComponentTranslation(ConnectionType.NEEDS_ID.getMessage()));
                 return EnumActionResult.FAIL;
             }
 
