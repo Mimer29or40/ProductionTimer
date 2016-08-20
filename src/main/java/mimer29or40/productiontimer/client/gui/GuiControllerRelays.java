@@ -1,6 +1,7 @@
 package mimer29or40.productiontimer.client.gui;
 
 import mimer29or40.productiontimer.PTInfo;
+import mimer29or40.productiontimer.ProductionTimer;
 import mimer29or40.productiontimer.client.gui.components.GuiComponentButton;
 import mimer29or40.productiontimer.client.gui.components.GuiComponentList;
 import mimer29or40.productiontimer.common.model.Relay;
@@ -73,6 +74,14 @@ public class GuiControllerRelays extends GuiScreen
             mc.displayGuiScreen(parent);
         }
 
+        if (buttonHighlight.mouseOver(mouseX, mouseY) && relayList.selectedEntry != -1)
+        {
+//            buttonHighlight.selected = !buttonHighlight.selected;
+
+            Relay relay = relayList.relayList.get(relayList.selectedEntry);
+            ProductionTimer.renderHelper.addBlockToHighLight(relay.getPos());
+        }
+
         if (buttonUnlink.mouseOver(mouseX, mouseY))
         {
             if (relayList.selectedEntry != -1)
@@ -102,6 +111,12 @@ public class GuiControllerRelays extends GuiScreen
         buttonBack.drawBackgroundLayer(mc, mouseX, mouseY);
         buttonHighlight.drawBackgroundLayer(mc, mouseX, mouseY);
         buttonUnlink.drawBackgroundLayer(mc, mouseX, mouseY);
+
+//        if (relayList.selectedEntry != -1 && buttonHighlight.selected)
+//        {
+//            Relay relay = relayList.relayList.get(relayList.selectedEntry);
+//            RenderHelper.highlightBlock(mc.thePlayer, relay.getPos(), partialTicks, 0xDD, 0x00, 0x00, 0x99);
+//        }
     }
 
     private class RelayList extends GuiComponentList

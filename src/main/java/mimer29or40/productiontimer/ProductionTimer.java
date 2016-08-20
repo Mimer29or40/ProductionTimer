@@ -1,6 +1,7 @@
 package mimer29or40.productiontimer;
 
 import com.google.common.base.Stopwatch;
+import mimer29or40.productiontimer.client.render.RenderHelper;
 import mimer29or40.productiontimer.common.config.Config;
 import mimer29or40.productiontimer.common.util.Log;
 import mimer29or40.productiontimer.proxy.IProxy;
@@ -26,6 +27,8 @@ public class ProductionTimer
     public static IProxy proxy;
 
     public static Configuration configuration;
+
+    public static RenderHelper renderHelper = new RenderHelper();
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event)
@@ -74,6 +77,7 @@ public class ProductionTimer
 //        MinecraftForge.EVENT_BUS.register(worldGen);
 
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(renderHelper);
 
 //        IntegrationsManager.instance().init();
 

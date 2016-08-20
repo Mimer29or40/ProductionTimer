@@ -33,24 +33,6 @@ public class GuiComponentButton extends GuiComponentBase
         int i = selected ? 1 : mouseOver(mouseX, mouseY) ? 2 : 0;
 
         drawStichedTexture(left, top, width, height, 3 * i, 41);
-//        // Top Left
-//        drawTexture(left, top, 2, 2, 3 * i, 41, 2, 2);
-//        // Top Center
-//        drawTexture(left + 2, top, width - 4, 2, 1 + 3 * i, 41, 1, 2);
-//        // Top Right
-//        drawTexture(left + width - 2, top, 2, 2, 1 + 3 * i, 41, 2, 2);
-//        // Center Left
-//        drawTexture(left, top + 2, 2, height - 4, 3 * i, 42, 2, 1);
-//        // Center
-//        drawTexture(left + 2, top + 2, width - 4, height - 4, 1 + 3 * i, 42, 1, 1);
-//        // Center Right
-//        drawTexture(left + width - 2, top + 2, 2, height - 4, 1 + 3 * i, 42, 2, 1);
-//        // Bottom Left
-//        drawTexture(left, top + height - 2, 2, 2, 3 * i, 42, 2, 2);
-//        // Bottom Center
-//        drawTexture(left + 2, top + height - 2, width - 4, 2, 1 + 3 * i, 42, 1, 2);
-//        // Bottom Right
-//        drawTexture(left + width - 2, top + height - 2, 2, 2, 1 + 3 * i, 42, 2, 2);
 
         if (buttonText != null)
         {
