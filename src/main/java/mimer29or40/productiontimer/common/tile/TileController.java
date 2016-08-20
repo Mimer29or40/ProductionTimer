@@ -141,6 +141,7 @@ public class TileController extends TileMachine
                 ((TileRelay) tile).unlinkController();
             }
             linkedRelays.remove(relayIndex);
+            markDirtyClient();
         }
     }
 

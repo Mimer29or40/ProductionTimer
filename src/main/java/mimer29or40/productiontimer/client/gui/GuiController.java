@@ -72,7 +72,7 @@ public class GuiController extends GuiMachine
             entry.setOutputRelayName("Relay2");
             entries.add(entry);
         }
-        entryList = new EntryList(guiLeft + 8, guiTop + 24, 240, 98, 25);
+        entryList = new EntryList(guiLeft + 7, guiTop + 23, 242, 100, 25);
 
         guiTabs.add(new GuiComponentGraphTab(0, guiLeft + 7, guiTop + 127, "Total"));
         guiTabs.add(new GuiComponentGraphTab(1, guiLeft + 7 + 48, guiTop + 127, "#/sec"));

@@ -31,6 +31,7 @@ public class PTNetwork
     {
         registerPacket(PacketMachineID.class);
         registerPacket(PacketLinkRelay.class);
+        registerPacket(PacketUnlinkRelay.class);
     }
 
     public static void sendToAll(AbstractPacket packet)

@@ -4,6 +4,8 @@ import mimer29or40.productiontimer.PTInfo;
 import mimer29or40.productiontimer.client.gui.components.GuiComponentButton;
 import mimer29or40.productiontimer.client.gui.components.GuiComponentList;
 import mimer29or40.productiontimer.common.model.Relay;
+import mimer29or40.productiontimer.common.network.PTNetwork;
+import mimer29or40.productiontimer.common.network.PacketUnlinkRelay;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
@@ -43,7 +45,7 @@ public class GuiControllerRelays extends GuiScreen
         guiLeft = (width - xSize) / 2;
         guiTop = (height - ySize) / 2;
 
-        relayList = new RelayList(guiLeft + 8, guiTop + 24, 159, 98, 26);
+        relayList = new RelayList(guiLeft + 7, guiTop + 23, 161, 100, 26);
 
         buttonBack = new GuiComponentButton(0, guiLeft + 7, guiTop + 7, 40, 12, "Back");
         buttonHighlight = new GuiComponentButton(1, guiLeft + 57, guiTop + 7, 61, 12, "Highlight");
@@ -69,6 +71,17 @@ public class GuiControllerRelays extends GuiScreen
         if (Mouse.isButtonDown(1) || buttonBack.mouseOver(mouseX, mouseY))
         {
             mc.displayGuiScreen(parent);
+        }
+
+        if (buttonUnlink.mouseOver(mouseX, mouseY))
+        {
+            if (relayList.selectedEntry != -1)
+            {
+                Relay relay = relayList.relayList.get(relayList.selectedEntry);
+                PTNetwork.sendToServer(new PacketUnlinkRelay(relay.getPos(), parent.tileController.getPos()));
+                relayList.relayList.remove(relayList.selectedEntry);
+                relayList.selectedEntry = -1;
+            }
         }
     }
 

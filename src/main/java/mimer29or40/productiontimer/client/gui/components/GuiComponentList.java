@@ -28,7 +28,7 @@ public abstract class GuiComponentList extends GuiComponentBase
     protected float scrollFactor;
     protected float scrollDistance;
 
-    protected int selectedEntry = -1;
+    public int selectedEntry = -1;
 
     protected long lastClickTime = 0L;
 
@@ -65,7 +65,7 @@ public abstract class GuiComponentList extends GuiComponentBase
 
     private void applyScrollLimits()
     {
-        int listHeight = getContentHeight() - height;
+        int listHeight = getContentHeight() - baseHeight;
 
         if (listHeight < 0) listHeight /= 2;
 
@@ -128,10 +128,8 @@ public abstract class GuiComponentList extends GuiComponentBase
                         if (scrollHeight < 1) scrollHeight = 1;
 
                         int scrollBarHeight = (int) ((float) (baseHeight * baseHeight) / (float) getContentHeight());
-
-                        if (scrollBarHeight < 32) scrollBarHeight = 32;
+                        if (scrollBarHeight < 15) scrollBarHeight = 15;
                         if (scrollBarHeight > baseHeight - 2 * border) scrollBarHeight = baseHeight - 2 * border;
-                        scrollBarHeight = 15;
 
                         scrollFactor /= (float) (baseHeight - scrollBarHeight) / (float) scrollHeight;
                     }
@@ -204,18 +202,11 @@ public abstract class GuiComponentList extends GuiComponentBase
         if (extraHeight > 0)
         {
             int scrollBarHeight = (baseHeight * baseHeight) / getContentHeight();
-
-            if (scrollBarHeight < 32) scrollBarHeight = 32;
-
-            if (scrollBarHeight > baseHeight - border * 2)
-                scrollBarHeight = baseHeight - border * 2;
-            scrollBarHeight = 15;
+            if (scrollBarHeight < 15) scrollBarHeight = 15;
+            if (scrollBarHeight > baseHeight - border * 2) scrollBarHeight = baseHeight - border * 2;
 
             int barTop = (int) scrollDistance * (baseHeight - scrollBarHeight) / extraHeight + baseTop;
-            if (barTop < baseTop)
-            {
-                barTop = baseTop;
-            }
+            if (barTop < baseTop) barTop = baseTop;
             GlStateManager.disableTexture2D();
             worldr.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
             worldr.pos(scrollBarLeft, baseTop + baseHeight, 0.0D).tex(0.0D, 1.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
