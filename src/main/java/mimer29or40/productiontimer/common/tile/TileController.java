@@ -121,6 +121,29 @@ public class TileController extends TileMachine
         return ConnectionType.NOTRELAY;
     }
 
+    public void unlinkRelay(BlockPos pos)
+    {
+        int relayIndex = -1;
+        for (int i = 0; i < linkedRelays.size(); i++)
+        {
+            Relay relay = linkedRelays.get(i);
+            if (pos.equals(relay.getPos()))
+            {
+                relayIndex = i;
+                break;
+            }
+        }
+        if (relayIndex != -1)
+        {
+            TileEntity tile = worldObj.getTileEntity(pos);
+            if (tile != null && tile instanceof TileRelay)
+            {
+                ((TileRelay) tile).unlinkController();
+            }
+            linkedRelays.remove(relayIndex);
+        }
+    }
+
     public void unlinkRelays()
     {
         for (Relay relay : linkedRelays)

@@ -1,14 +1,14 @@
 package mimer29or40.productiontimer.client.gui;
 
 import mimer29or40.productiontimer.PTInfo;
-import mimer29or40.productiontimer.client.gui.components.*;
+import mimer29or40.productiontimer.client.gui.components.GuiComponentButton;
+import mimer29or40.productiontimer.client.gui.components.GuiComponentGraphTab;
+import mimer29or40.productiontimer.client.gui.components.GuiComponentList;
 import mimer29or40.productiontimer.common.container.ContainerController;
 import mimer29or40.productiontimer.common.model.Entry;
 import mimer29or40.productiontimer.common.network.PTNetwork;
 import mimer29or40.productiontimer.common.network.PacketMachineID;
 import mimer29or40.productiontimer.common.tile.TileController;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
@@ -30,10 +30,10 @@ public class GuiController extends GuiMachine
     public  int                                   selectedTab = 0;
     private final ArrayList<GuiComponentGraphTab> guiTabs     = new ArrayList<>();
 
-    public  int                                      selectedTimeButton = 0;
-    private final ArrayList<GuiComponentSmallButton> guiTimeButtons     = new ArrayList<>();
+    public  int                                 selectedTimeButton = 0;
+    private final ArrayList<GuiComponentButton> guiTimeButtons     = new ArrayList<>();
 
-    private GuiButton buttonRelays;
+    private GuiComponentButton buttonRelays;
 
     public GuiController(TileController tileController)
     {
@@ -72,22 +72,23 @@ public class GuiController extends GuiMachine
             entry.setOutputRelayName("Relay2");
             entries.add(entry);
         }
-        entryList = new EntryList(this, guiLeft + 8, guiTop + 24, 240, 98, 25);
+        entryList = new EntryList(guiLeft + 8, guiTop + 24, 240, 98, 25);
 
         guiTabs.add(new GuiComponentGraphTab(0, guiLeft + 7, guiTop + 127, "Total"));
         guiTabs.add(new GuiComponentGraphTab(1, guiLeft + 7 + 48, guiTop + 127, "#/sec"));
         guiTabs.add(new GuiComponentGraphTab(2, guiLeft + 7 + 48 + 48, guiTop + 127, "Test"));
         guiTabs.get(selectedTab).enabled = true;
 
-        guiTimeButtons.add(new GuiComponentSmallButton(0, guiLeft + 234, guiTop + 147 + 15 * 0, "5 Seconds"));
-        guiTimeButtons.add(new GuiComponentSmallButton(1, guiLeft + 234, guiTop + 147 + 15 * 1, "10 Seconds"));
-        guiTimeButtons.add(new GuiComponentSmallButton(2, guiLeft + 234, guiTop + 147 + 15 * 2, "15 Seconds"));
-        guiTimeButtons.add(new GuiComponentSmallButton(3, guiLeft + 234, guiTop + 147 + 15 * 3, "30 Seconds"));
-        guiTimeButtons.add(new GuiComponentSmallButton(4, guiLeft + 234, guiTop + 147 + 15 * 4, "60 Seconds"));
-        guiTimeButtons.add(new GuiComponentSmallButton(5, guiLeft + 234, guiTop + 147 + 15 * 5, "5 Minutes"));
+        guiTimeButtons.add(new GuiComponentButton(0, guiLeft + 234, guiTop + 147         , 10, 10, null, "5 Seconds"));
+        guiTimeButtons.add(new GuiComponentButton(1, guiLeft + 234, guiTop + 147 + 15    , 10, 10, null, "10 Seconds"));
+        guiTimeButtons.add(new GuiComponentButton(2, guiLeft + 234, guiTop + 147 + 15 * 2, 10, 10, null, "15 Seconds"));
+        guiTimeButtons.add(new GuiComponentButton(3, guiLeft + 234, guiTop + 147 + 15 * 3, 10, 10, null, "30 Seconds"));
+        guiTimeButtons.add(new GuiComponentButton(4, guiLeft + 234, guiTop + 147 + 15 * 4, 10, 10, null, "60 Seconds"));
+        guiTimeButtons.add(new GuiComponentButton(5, guiLeft + 234, guiTop + 147 + 15 * 5, 10, 10, null, "5 Minutes"));
         guiTimeButtons.get(selectedTimeButton).enabled = true;
 
-        buttonRelays = new GuiButton(0, guiLeft + 172, guiTop + 7, 50, 10, "Relays");
+//        buttonRelays = new GuiButton(0, guiLeft + 172, guiTop + 7, 50, 10, "Relays");
+        buttonRelays = new GuiComponentButton(0, guiLeft + 172, guiTop + 7, 40, 12, "Relays");
     }
 
     @Override
@@ -116,27 +117,27 @@ public class GuiController extends GuiMachine
 
         for (GuiComponentGraphTab tab : guiTabs)
         {
-            if (tab.mousePressed(mc, mouseX - 1, mouseY - 1))
+            if (tab.mouseOver(mouseX - 1, mouseY - 1))
             {
-                guiTabs.get(selectedTab).enabled = false;
+                guiTabs.get(selectedTab).selected = false;
                 selectedTab = tab.id;
-                tab.enabled = true;
+                tab.selected = true;
                 break;
             }
         }
 
-        for (GuiComponentSmallButton button : guiTimeButtons)
+        for (GuiComponentButton button : guiTimeButtons)
         {
-            if (button.mousePressed(mc, mouseX - 1, mouseY - 1))
+            if (button.mouseOver(mouseX - 1, mouseY - 1))
             {
-                guiTimeButtons.get(selectedTimeButton).enabled = false;
+                guiTimeButtons.get(selectedTimeButton).selected = false;
                 selectedTimeButton = button.id;
-                button.enabled = true;
+                button.selected = true;
                 break;
             }
         }
 
-        if (buttonRelays.mousePressed(mc, mouseX - 1, mouseY - 1))
+        if (buttonRelays.mouseOver(mouseX - 1, mouseY - 1))
         {
             mc.displayGuiScreen(new GuiControllerRelays(this));
         }
@@ -169,11 +170,6 @@ public class GuiController extends GuiMachine
         textFieldID.updateCursorCounter();
     }
 
-    public FontRenderer getFontRenderer()
-    {
-        return fontRendererObj;
-    }
-
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
@@ -183,7 +179,7 @@ public class GuiController extends GuiMachine
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY)
     {
-        entryList.drawEntryList(mouseX, mouseY);
+        entryList.drawBackgroundLayer(mc, mouseX, mouseY);
 
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         ResourceLocation relayGuiTexture = new ResourceLocation(PTInfo.MOD_ID + ":textures/gui/controller.png");
@@ -196,15 +192,15 @@ public class GuiController extends GuiMachine
 
         for (GuiComponentGraphTab tab : guiTabs)
         {
-            tab.drawButton(mc, mouseX, mouseY);
+            tab.drawBackgroundLayer(mc, mouseX, mouseY);
         }
 
-        for (GuiComponentSmallButton button : guiTimeButtons)
+        for (GuiComponentButton button : guiTimeButtons)
         {
-            button.drawButton(mc, mouseX, mouseY);
+            button.drawBackgroundLayer(mc, mouseX, mouseY);
         }
 
-        buttonRelays.drawButton(mc, mouseX, mouseY);
+        buttonRelays.drawBackgroundLayer(mc, mouseX, mouseY);
     }
 
     @Override
@@ -212,17 +208,17 @@ public class GuiController extends GuiMachine
     {
         fontRendererObj.drawString("ID:", 7, 9, 4210752);
 
-        for (GuiComponentSmallButton button : guiTimeButtons)
+        for (GuiComponentButton button : guiTimeButtons)
         {
-            button.drawButtonForegroundLayer(mc, mouseX - 1, mouseY - 1);
+            button.drawForegroundLayer(mc, mouseX - 1, mouseY - 1);
         }
     }
 
     private class EntryList extends GuiComponentList
     {
-        public EntryList(GuiController parent, int left, int top, int width, int height, int entryHeight)
+        public EntryList(int left, int top, int width, int height, int entryHeight)
         {
-            super(parent.mc, parent.width, parent.height, left, top, width, height, entryHeight);
+            super(0, left, top, width, height, entryHeight);
         }
 
         @Override
@@ -232,9 +228,9 @@ public class GuiController extends GuiMachine
         }
 
         @Override
-        public void entryClicked(int index, boolean doubleClick)
+        public void entryClicked(int entry, boolean doubleClick)
         {
-            setSelectedEntry(index);
+            setSelectedEntry(entry);
         }
 
         @Override

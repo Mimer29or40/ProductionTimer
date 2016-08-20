@@ -1,26 +1,23 @@
 package mimer29or40.productiontimer.client.gui.components;
 
+import mimer29or40.productiontimer.PTInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.ResourceLocation;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.io.IOException;
 
-public abstract class GuiComponentList
+public abstract class GuiComponentList extends GuiComponentBase
 {
-    protected final Minecraft client;
-
-    protected final int screenWidth;
-    protected final int screenHeight;
-
-    protected final int left;
-    protected final int top;
-    protected final int width;
-    protected final int height;
+    protected final int baseLeft;
+    protected final int baseTop;
+    protected final int baseWidth;
+    protected final int baseHeight;
 
     protected final int entryHeight;
 
@@ -37,35 +34,38 @@ public abstract class GuiComponentList
 
     protected boolean highlightSelected = true;
 
-    public GuiComponentList(Minecraft client, int screenWidth, int screenHeight, int left, int top, int width, int height, int entryHeight)
+    public GuiComponentList(int id, int left, int top, int width, int height, int entryHeight)
     {
-        this.client = client;
+        super(id, left, top, width, height);
 
-        this.screenWidth = screenWidth;
-        this.screenHeight = screenHeight;
-
-        this.left = left;
-        this.top = top;
-        this.width = width;
-        this.height = height;
+        this.baseLeft = left + 1;
+        this.baseTop = top + 1;
+        this.baseWidth = width - 2;
+        this.baseHeight = height - 2;
 
         this.entryHeight = entryHeight;
     }
 
     public abstract int getSize();
 
-    public abstract void entryClicked(int index, boolean doubleClick);
+    public void entryClicked(int entry, boolean doubleClick)
+    {
+        selectedEntry = entry;
+    }
 
-    public abstract boolean isSelected(int index);
+    public boolean isSelected(int entry)
+    {
+        return selectedEntry == entry;
+    }
 
     protected int getContentHeight()
     {
-        return this.getSize() * entryHeight;
+        return getSize() * entryHeight;
     }
 
     private void applyScrollLimits()
     {
-        int listHeight = this.getContentHeight() - height;
+        int listHeight = getContentHeight() - height;
 
         if (listHeight < 0) listHeight /= 2;
 
@@ -75,9 +75,7 @@ public abstract class GuiComponentList
 
     public void handleMouseInput(int mouseX, int mouseY) throws IOException
     {
-        boolean isHovering = left <= mouseX && mouseX <= left + width &&
-                             top <= mouseY && mouseY <= top + height;
-        if (!isHovering)
+        if (!mouseOver(mouseX, mouseY))
             return;
 
         int scroll = Mouse.getEventDWheel();
@@ -89,20 +87,20 @@ public abstract class GuiComponentList
 
     protected abstract void drawEntry(int entryId, int entryLeft, int entryTop, int entryBuffer, Tessellator tess);
 
-    public void drawEntryList(int mouseX, int mouseY)
+    @Override
+    public void drawBackgroundLayer(Minecraft mc, int mouseX, int mouseY)
     {
         this.mouseX = mouseX;
         this.mouseY = mouseY;
 
-        boolean isHovering = left <= mouseX && mouseX <= left + width &&
-                             top <= mouseY && mouseY <= top + height;
+        ResourceLocation ELEMENTS = new ResourceLocation(PTInfo.MOD_ID + ":textures/gui/elements.png");
 
         int listLength = getSize();
 
-        int scrollBarWidth = 6;
-        int scrollBarLeft = left + width - scrollBarWidth;
+        int scrollBarWidth = 12;
+        int scrollBarLeft = baseLeft + baseWidth - scrollBarWidth;
 
-        int entryLeft = left;
+        int entryLeft = baseLeft;
         int entryWidth = scrollBarLeft - 1 - entryLeft;
 
         int border = 4;
@@ -111,9 +109,9 @@ public abstract class GuiComponentList
         {
             if (initialMouseClickY == -1.0F)
             {
-                if (isHovering)
+                if (mouseOver(mouseX, mouseY))
                 {
-                    int mouseListY = mouseY - top + (int) scrollDistance - border;
+                    int mouseListY = mouseY - baseTop + (int) scrollDistance - border;
                     int entryIndex = mouseListY / entryHeight;
 
                     if (entryLeft <= mouseX && mouseX <= entryLeft + entryWidth && listLength > entryIndex && entryIndex >= 0 && mouseListY >= 0)
@@ -126,15 +124,16 @@ public abstract class GuiComponentList
                     if (scrollBarLeft <= mouseX && mouseX <= scrollBarLeft + scrollBarWidth)
                     {
                         scrollFactor = -1.0F;
-                        int scrollHeight = getContentHeight() - height - border;
+                        int scrollHeight = getContentHeight() - baseHeight - border;
                         if (scrollHeight < 1) scrollHeight = 1;
 
-                        int var = (int) ((float) (height * height) / (float) getContentHeight());
+                        int scrollBarHeight = (int) ((float) (baseHeight * baseHeight) / (float) getContentHeight());
 
-                        if (var < 32) var = 32;
-                        if (var > height - 2 * border) var = height - 2 * border;
+                        if (scrollBarHeight < 32) scrollBarHeight = 32;
+                        if (scrollBarHeight > baseHeight - 2 * border) scrollBarHeight = baseHeight - 2 * border;
+                        scrollBarHeight = 15;
 
-                        scrollFactor /= (float) (height - var) / (float) scrollHeight;
+                        scrollFactor /= (float) (baseHeight - scrollBarHeight) / (float) scrollHeight;
                     }
                     else
                     {
@@ -164,28 +163,30 @@ public abstract class GuiComponentList
         Tessellator tess = Tessellator.getInstance();
         VertexBuffer worldr = tess.getBuffer();
 
-        drawGradientRect(left, top, left + width, top + height, 0xFF8B8B8B, 0xFF8B8B8B);
+//        drawGradientRect(left, top, left + width, top + height, 0xFF8B8B8B, 0xFF8B8B8B);
+        mc.getTextureManager().bindTexture(ELEMENTS);
+        drawStichedTexture(left, top, width, height, 0, 44);
 
-        int baseY = top + 2 - (int) scrollDistance;
+        int baseY = baseTop + 2 - (int) scrollDistance;
 
         for (int entryId = 0; entryId < listLength; ++entryId)
         {
             int entryTop = baseY + entryId * entryHeight;
             int entryBuffer = entryHeight - border;
 
-            if (entryTop <= top + height && entryTop + entryBuffer >= top)
+            if (entryTop <= baseTop + baseHeight && entryTop + entryBuffer >= baseTop)
             {
                 if (highlightSelected && isSelected(entryId))
                 {
-                    int min = left;
+                    int min = baseLeft;
                     int max = entryLeft + entryWidth;
                     GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                     GlStateManager.disableTexture2D();
                     worldr.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-                    worldr.pos(min, entryTop + entryBuffer + 2, 0).tex(0, 1).color(0x80, 0x80, 0x80, 0xFF).endVertex();
-                    worldr.pos(max, entryTop + entryBuffer + 2, 0).tex(1, 1).color(0x80, 0x80, 0x80, 0xFF).endVertex();
-                    worldr.pos(max, entryTop - 2, 0).tex(1, 0).color(0x80, 0x80, 0x80, 0xFF).endVertex();
-                    worldr.pos(min, entryTop - 2, 0).tex(0, 0).color(0x80, 0x80, 0x80, 0xFF).endVertex();
+                    worldr.pos(min, entryTop + entryBuffer + 2, 0).tex(0, 1).color(0x60, 0x60, 0x60, 0xFF).endVertex();
+                    worldr.pos(max, entryTop + entryBuffer + 2, 0).tex(1, 1).color(0x60, 0x60, 0x60, 0xFF).endVertex();
+                    worldr.pos(max, entryTop - 2, 0).tex(1, 0).color(0x60, 0x60, 0x60, 0xFF).endVertex();
+                    worldr.pos(min, entryTop - 2, 0).tex(0, 0).color(0x60, 0x60, 0x60, 0xFF).endVertex();
                     worldr.pos(min + 1, entryTop + entryBuffer + 1, 0).tex(0, 1).color(0x00, 0x00, 0x00, 0xFF).endVertex();
                     worldr.pos(max - 1, entryTop + entryBuffer + 1, 0).tex(1, 1).color(0x00, 0x00, 0x00, 0xFF).endVertex();
                     worldr.pos(max - 1, entryTop - 1, 0).tex(1, 0).color(0x00, 0x00, 0x00, 0xFF).endVertex();
@@ -194,46 +195,50 @@ public abstract class GuiComponentList
                     GlStateManager.enableTexture2D();
                 }
 
-                drawEntry(entryId, entryLeft, entryTop, entryBuffer, null);
+                drawEntry(entryId, entryLeft, entryTop, entryBuffer, tess);
             }
         }
 
-        int extraHeight = getContentHeight() - height;
+        int extraHeight = getContentHeight() - baseHeight;
 
         if (extraHeight > 0)
         {
-            int height = (this.height * this.height) / this.getContentHeight();
+            int scrollBarHeight = (baseHeight * baseHeight) / getContentHeight();
 
-            if (height < 32) height = 32;
+            if (scrollBarHeight < 32) scrollBarHeight = 32;
 
-            if (height > this.height - border * 2)
-                height = this.height - border * 2;
+            if (scrollBarHeight > baseHeight - border * 2)
+                scrollBarHeight = baseHeight - border * 2;
+            scrollBarHeight = 15;
 
-            int barTop = (int) this.scrollDistance * (this.height - height) / extraHeight + this.top;
-            if (barTop < this.top)
+            int barTop = (int) scrollDistance * (baseHeight - scrollBarHeight) / extraHeight + baseTop;
+            if (barTop < baseTop)
             {
-                barTop = this.top;
+                barTop = baseTop;
             }
-
             GlStateManager.disableTexture2D();
             worldr.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-            worldr.pos(scrollBarLeft, top + this.height, 0.0D).tex(0.0D, 1.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
-            worldr.pos(scrollBarLeft + scrollBarWidth, top + this.height, 0.0D).tex(1.0D, 1.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
-            worldr.pos(scrollBarLeft + scrollBarWidth, top, 0.0D).tex(1.0D, 0.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
-            worldr.pos(scrollBarLeft, top, 0.0D).tex(0.0D, 0.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
+            worldr.pos(scrollBarLeft, baseTop + baseHeight, 0.0D).tex(0.0D, 1.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
+            worldr.pos(scrollBarLeft + scrollBarWidth, baseTop + baseHeight, 0.0D).tex(1.0D, 1.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
+            worldr.pos(scrollBarLeft + scrollBarWidth, baseTop, 0.0D).tex(1.0D, 0.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
+            worldr.pos(scrollBarLeft, baseTop, 0.0D).tex(0.0D, 0.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
             tess.draw();
-            worldr.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-            worldr.pos(scrollBarLeft, barTop + height, 0.0D).tex(0.0D, 1.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
-            worldr.pos(scrollBarLeft + scrollBarWidth, barTop + height, 0.0D).tex(1.0D, 1.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
-            worldr.pos(scrollBarLeft + scrollBarWidth, barTop, 0.0D).tex(1.0D, 0.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
-            worldr.pos(scrollBarLeft, barTop, 0.0D).tex(0.0D, 0.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
-            tess.draw();
-            worldr.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-            worldr.pos(scrollBarLeft, barTop + height - 1, 0.0D).tex(0.0D, 1.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
-            worldr.pos(scrollBarLeft + scrollBarWidth - 1, barTop + height - 1, 0.0D).tex(1.0D, 1.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
-            worldr.pos(scrollBarLeft + scrollBarWidth - 1, barTop, 0.0D).tex(1.0D, 0.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
-            worldr.pos(scrollBarLeft, barTop, 0.0D).tex(0.0D, 0.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
-            tess.draw();
+            GlStateManager.enableTexture2D();
+
+            mc.getTextureManager().bindTexture(ELEMENTS);
+            drawTexture(scrollBarLeft, barTop, scrollBarWidth, scrollBarHeight, 0, 26, 12, 15);
+//            worldr.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+//            worldr.pos(scrollBarLeft, barTop + scrollBarHeight, 0.0D).tex(0.0D, 1.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
+//            worldr.pos(scrollBarLeft + scrollBarWidth, barTop + scrollBarHeight, 0.0D).tex(1.0D, 1.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
+//            worldr.pos(scrollBarLeft + scrollBarWidth, barTop, 0.0D).tex(1.0D, 0.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
+//            worldr.pos(scrollBarLeft, barTop, 0.0D).tex(0.0D, 0.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
+//            tess.draw();
+//            worldr.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+//            worldr.pos(scrollBarLeft, barTop + scrollBarHeight - 1, 0.0D).tex(0.0D, 1.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
+//            worldr.pos(scrollBarLeft + scrollBarWidth - 1, barTop + scrollBarHeight - 1, 0.0D).tex(1.0D, 1.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
+//            worldr.pos(scrollBarLeft + scrollBarWidth - 1, barTop, 0.0D).tex(1.0D, 0.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
+//            worldr.pos(scrollBarLeft, barTop, 0.0D).tex(0.0D, 0.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
+//            tess.draw();
         }
 
         GlStateManager.enableTexture2D();
@@ -243,32 +248,9 @@ public abstract class GuiComponentList
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
     }
 
-    protected void drawGradientRect(int left, int top, int right, int bottom, int color1, int color2)
+    @Override
+    public void drawForegroundLayer(Minecraft mc, int mouseX, int mouseY)
     {
-        float a1 = (float) (color1 >> 24 & 255) / 255.0F;
-        float r1 = (float) (color1 >> 16 & 255) / 255.0F;
-        float g1 = (float) (color1 >> 8 & 255) / 255.0F;
-        float b1 = (float) (color1 & 255) / 255.0F;
-        float a2 = (float) (color2 >> 24 & 255) / 255.0F;
-        float r2 = (float) (color2 >> 16 & 255) / 255.0F;
-        float g2 = (float) (color2 >> 8 & 255) / 255.0F;
-        float b2 = (float) (color2 & 255) / 255.0F;
-        GlStateManager.disableTexture2D();
-        GlStateManager.enableBlend();
-        GlStateManager.disableAlpha();
-        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
-        GlStateManager.shadeModel(GL11.GL_SMOOTH);
-        Tessellator tessellator = Tessellator.getInstance();
-        VertexBuffer VertexBuffer = tessellator.getBuffer();
-        VertexBuffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-        VertexBuffer.pos(right, top, 0.0D).color(r1, g1, b1, a1).endVertex();
-        VertexBuffer.pos(left, top, 0.0D).color(r1, g1, b1, a1).endVertex();
-        VertexBuffer.pos(left, bottom, 0.0D).color(r2, g2, b2, a2).endVertex();
-        VertexBuffer.pos(right, bottom, 0.0D).color(r2, g2, b2, a2).endVertex();
-        tessellator.draw();
-        GlStateManager.shadeModel(GL11.GL_FLAT);
-        GlStateManager.disableBlend();
-        GlStateManager.enableAlpha();
-        GlStateManager.enableTexture2D();
+
     }
 }
