@@ -15,7 +15,7 @@ public class GuiHandler implements IGuiHandler
         TileEntity te = world.getTileEntity(new BlockPos(x, y, z));
         if (te instanceof IRegisterGui)
         {
-            return ((IRegisterGui) te).createContainer(player.inventory, world, new BlockPos(x, y, z));
+            return ((IRegisterGui) te).createContainer(ID, player.inventory, world, new BlockPos(x, y, z));
         }
         return null;
     }
@@ -26,7 +26,7 @@ public class GuiHandler implements IGuiHandler
         TileEntity te = world.getTileEntity(new BlockPos(x, y, z));
         if (te instanceof IRegisterGui)
         {
-            return ((IRegisterGui) te).createGui(player.inventory, world, new BlockPos(x, y, z));
+            return ((IRegisterGui) te).createGui(ID, player.inventory, world, new BlockPos(x, y, z));
         }
         return null;
     }

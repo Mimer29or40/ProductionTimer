@@ -69,7 +69,7 @@ public class GuiControllerRelays extends GuiScreen
     {
         super.mouseClicked(mouseX, mouseY, mouseButton);
 
-        if (Mouse.isButtonDown(1) || buttonBack.mouseOver(mouseX, mouseY))
+        if (mouseButton == 1 || buttonBack.mouseOver(mouseX, mouseY))
         {
             mc.displayGuiScreen(parent);
         }
@@ -118,7 +118,7 @@ public class GuiControllerRelays extends GuiScreen
         public GuiComponentListRelay(int left, int top, int width, int height, int entryHeight)
         {
             super(0, left, top, width, height, entryHeight);
-            relayList = parent.tileController.getLinkedRelays();
+            relayList = parent.tileController.linkedRelays;
         }
 
         @Override

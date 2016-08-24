@@ -8,11 +8,20 @@ import mimer29or40.productiontimer.common.container.ContainerController;
 import mimer29or40.productiontimer.common.model.Entry;
 import mimer29or40.productiontimer.common.network.PTNetwork;
 import mimer29or40.productiontimer.common.network.PacketMachineID;
+import mimer29or40.productiontimer.common.network.PacketOpenGui;
 import mimer29or40.productiontimer.common.tile.TileController;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.World;
+import net.minecraftforge.client.ForgeHooksClient;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
@@ -23,9 +32,7 @@ public class GuiController extends GuiMachine
 {
     public TileController tileController;
 
-    public  int              selectedEntry = 0;
-    private ArrayList<Entry> entries = new ArrayList<>();
-    private EntryList        entryList;
+    private GuiComponentListEntry guiListEntry;
 
     public  int                                   selectedTab = 0;
     private final ArrayList<GuiComponentGraphTab> guiTabs     = new ArrayList<>();
@@ -34,6 +41,8 @@ public class GuiController extends GuiMachine
     private final ArrayList<GuiComponentButton> guiTimeButtons     = new ArrayList<>();
 
     private GuiComponentButton buttonRelays;
+    private GuiComponentButton buttonEditRelay;
+    private GuiComponentButton buttonNewRelay;
 
     public GuiController(TileController tileController)
     {
@@ -46,9 +55,9 @@ public class GuiController extends GuiMachine
 
     public void setSelectedEntry(int index)
     {
-        if (index == selectedEntry)
+        if (index == tileController.selectedEntry)
             return;
-        selectedEntry = index;
+        tileController.selectedEntry = index;
     }
 
     @Override
@@ -62,22 +71,14 @@ public class GuiController extends GuiMachine
         textFieldID.setEnableBackgroundDrawing(false);
         textFieldID.setMaxStringLength(40);
 
-        if (tileController.hasCustomName())
-            textFieldID.setText(tileController.getName());
+        if (tileController.hasCustomName()) textFieldID.setText(tileController.getName());
 
-        for (int i = 0; i < 20; i++)
-        {
-            Entry entry = new Entry("Test" + i);
-            entry.setInputRelayName("Relay1");
-            entry.setOutputRelayName("Relay2");
-            entries.add(entry);
-        }
-        entryList = new EntryList(guiLeft + 7, guiTop + 23, 242, 100, 25);
+        guiListEntry = new GuiComponentListEntry(guiLeft + 7, guiTop + 23, 242, 100, 25);
 
-        guiTabs.add(new GuiComponentGraphTab(0, guiLeft + 7, guiTop + 127, "Total"));
-        guiTabs.add(new GuiComponentGraphTab(1, guiLeft + 7 + 48, guiTop + 127, "#/sec"));
+        guiTabs.add(new GuiComponentGraphTab(0, guiLeft + 7,           guiTop + 127, "Total"));
+        guiTabs.add(new GuiComponentGraphTab(1, guiLeft + 7 + 48,      guiTop + 127, "#/sec"));
         guiTabs.add(new GuiComponentGraphTab(2, guiLeft + 7 + 48 + 48, guiTop + 127, "Test"));
-        guiTabs.get(selectedTab).enabled = true;
+        guiTabs.get(selectedTab).selected = true;
 
         guiTimeButtons.add(new GuiComponentButton(0, guiLeft + 234, guiTop + 147         , 10, 10, null, "5 Seconds"));
         guiTimeButtons.add(new GuiComponentButton(1, guiLeft + 234, guiTop + 147 + 15    , 10, 10, null, "10 Seconds"));
@@ -85,10 +86,12 @@ public class GuiController extends GuiMachine
         guiTimeButtons.add(new GuiComponentButton(3, guiLeft + 234, guiTop + 147 + 15 * 3, 10, 10, null, "30 Seconds"));
         guiTimeButtons.add(new GuiComponentButton(4, guiLeft + 234, guiTop + 147 + 15 * 4, 10, 10, null, "60 Seconds"));
         guiTimeButtons.add(new GuiComponentButton(5, guiLeft + 234, guiTop + 147 + 15 * 5, 10, 10, null, "5 Minutes"));
-        guiTimeButtons.get(selectedTimeButton).enabled = true;
+        guiTimeButtons.get(selectedTimeButton).selected = true;
 
-//        buttonRelays = new GuiButton(0, guiLeft + 172, guiTop + 7, 50, 10, "Relays");
         buttonRelays = new GuiComponentButton(0, guiLeft + 172, guiTop + 7, 40, 12, "Relays");
+
+        buttonEditRelay = new GuiComponentButton(0, guiLeft + 222, guiTop + 7, 30, 12, "Edit");
+        buttonNewRelay = new GuiComponentButton(0, guiLeft + 262, guiTop + 7, 30, 12, "New");
     }
 
     @Override
@@ -106,7 +109,7 @@ public class GuiController extends GuiMachine
         int mouseX = Mouse.getEventX() * this.width / this.mc.displayWidth;
         int mouseY = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
 
-        entryList.handleMouseInput(mouseX, mouseY);
+        guiListEntry.handleMouseInput(mouseX, mouseY);
     }
 
     @Override
@@ -141,25 +144,36 @@ public class GuiController extends GuiMachine
         {
             mc.displayGuiScreen(new GuiControllerRelays(this));
         }
+
+        if (buttonEditRelay.mouseOver(mouseX - 1, mouseY - 1))
+        {
+            if (tileController.selectedEntry != -1)
+            {
+                PTNetwork.sendToServer(new PacketOpenGui(1, tileController.getPos()));
+            }
+        }
+
+        if (buttonNewRelay.mouseOver(mouseX - 1, mouseY - 1))
+        {
+            Entry newEntry = new Entry(tileController);
+            tileController.addEntry(newEntry);
+        }
     }
 
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException
     {
-        if (!textFieldID.isFocused())
-        {
-            super.keyTyped(typedChar, keyCode);
-        }
-        else
-        {
-            if (keyCode == 1)
-            {
-                this.mc.thePlayer.closeScreen();
-            }
+        if (keyCode == 1) this.mc.thePlayer.closeScreen();
 
+        if (textFieldID.isFocused())
+        {
             textFieldID.textboxKeyTyped(typedChar, keyCode);
             PTNetwork.sendToServer(new PacketMachineID(textFieldID.getText()));
             tileController.setCustomName(textFieldID.getText());
+        }
+        else
+        {
+            super.keyTyped(typedChar, keyCode);
         }
     }
 
@@ -179,7 +193,7 @@ public class GuiController extends GuiMachine
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY)
     {
-        entryList.drawBackgroundLayer(mc, mouseX, mouseY);
+        guiListEntry.drawBackgroundLayer(mc, mouseX, mouseY);
 
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         ResourceLocation relayGuiTexture = new ResourceLocation(PTInfo.MOD_ID + ":textures/gui/controller.png");
@@ -201,6 +215,8 @@ public class GuiController extends GuiMachine
         }
 
         buttonRelays.drawBackgroundLayer(mc, mouseX, mouseY);
+        buttonEditRelay.drawBackgroundLayer(mc, mouseX, mouseY);
+        buttonNewRelay.drawBackgroundLayer(mc, mouseX, mouseY);
     }
 
     @Override
@@ -214,9 +230,9 @@ public class GuiController extends GuiMachine
         }
     }
 
-    private class EntryList extends GuiComponentList
+    private class GuiComponentListEntry extends GuiComponentList
     {
-        public EntryList(int left, int top, int width, int height, int entryHeight)
+        public GuiComponentListEntry(int left, int top, int width, int height, int entryHeight)
         {
             super(0, left, top, width, height, entryHeight);
         }
@@ -224,7 +240,7 @@ public class GuiController extends GuiMachine
         @Override
         public int getSize()
         {
-            return entries.size();
+            return tileController.entries.size();
         }
 
         @Override
@@ -242,12 +258,60 @@ public class GuiController extends GuiMachine
         @Override
         protected void drawEntry(int entryId, int entryLeft, int entryTop, int entryBuffer, Tessellator tess)
         {
-            Entry entry = entries.get(entryId);
+            Entry entry = tileController.entries.get(entryId);
             String name = entry.getName();
-            String inputRelay = entry.getInputRelayName();
+            String inputRelay = entry.inputRelayName;
 
-            fontRendererObj.drawString(name, entryLeft + 3, entryTop + 2, 0xFFFFFF);
+            fontRendererObj.drawString("Entry Name: " + name, entryLeft + 3, entryTop + 2, 0xFFFFFF);
             fontRendererObj.drawString(inputRelay, entryLeft + 13, entryTop + 12, 0xCCCCCC);
+
+            for (int i = 0; i < entry.itemAmount; i++)
+            {
+                ItemStack stack = entry.getInputItemStack(i);
+                if (stack == null) continue;
+                String string = TextFormatting.YELLOW + "" + stack.stackSize;
+                drawItem(stack, entryLeft + i * 20 + 7, entryTop + 7);
+//                itemRender.renderItemAndEffectIntoGUI(mc.thePlayer, stack, entryLeft + i * 20 + 30, entryTop + 15);
+//                itemRender.renderItemOverlayIntoGUI(fontRendererObj, stack, entryLeft + i * 20 + 30, entryTop + 15, string);
+            }
+        }
+
+        private void drawItem(ItemStack stack, int x, int y)
+        {
+            if (stack != null && stack.getItem() != null)
+            {
+                RenderItem itemRenderer = mc.getRenderItem();
+                IBakedModel model = itemRenderer.getItemModelMesher().getItemModel(stack);
+                model = model.getOverrides().handleItemState(model, stack, (World) null, mc.thePlayer);
+
+                GlStateManager.pushMatrix();
+                mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+                mc.getTextureManager().getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE).setBlurMipmap(false, false);
+                GlStateManager.enableRescaleNormal();
+                GlStateManager.enableAlpha();
+                GlStateManager.alphaFunc(516, 0.1F);
+                GlStateManager.enableBlend();
+                GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+
+                GlStateManager.translate((float) x, (float) y, zLevel);
+                GlStateManager.translate(8.0F, 8.0F, 0.0F);
+                GlStateManager.scale(1.0F, -1.0F, 1.0F);
+                GlStateManager.scale(16.0F, 16.0F, 16.0F);
+                GlStateManager.disableDepth();
+                GlStateManager.enableLighting();
+
+                model = ForgeHooksClient.handleCameraTransforms(model, ItemCameraTransforms.TransformType.GUI, false);
+
+                itemRenderer.renderItem(stack, model);
+
+                GlStateManager.disableAlpha();
+                GlStateManager.disableRescaleNormal();
+                GlStateManager.disableLighting();
+                GlStateManager.popMatrix();
+                mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+                mc.getTextureManager().getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE).restoreLastBlurMipmap();
+            }
         }
     }
 }

@@ -42,6 +42,7 @@ public class RenderHelper
         GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
         GlStateManager.disableTexture2D();
         GlStateManager.depthMask(false);
+        // TODO config option
 //        GlStateManager.disableDepth();
 
         final EntityPlayer player = event.getPlayer();

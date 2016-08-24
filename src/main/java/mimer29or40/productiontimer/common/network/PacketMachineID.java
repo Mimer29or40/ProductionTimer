@@ -11,7 +11,7 @@ import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 
-public class PacketMachineID extends AbstractPacketThreadSafe
+public class PacketMachineID extends AbstractPacket
 {
     public String ID;
 
@@ -35,7 +35,7 @@ public class PacketMachineID extends AbstractPacketThreadSafe
     }
 
     @Override
-    public void handleClientSafe(NetHandlerPlayClient netHandler)
+    public void handleClientMessage(NetHandlerPlayClient netHandler)
     {
         Container container = Minecraft.getMinecraft().thePlayer.openContainer;
         if (container instanceof ContainerMachine)
@@ -45,13 +45,12 @@ public class PacketMachineID extends AbstractPacketThreadSafe
     }
 
     @Override
-    public void handleServerSafe(NetHandlerPlayServer netHandler)
+    public void handleServerMessage(NetHandlerPlayServer netHandler)
     {
         Container container = netHandler.playerEntity.openContainer;
         if (container instanceof ContainerMachine)
         {
             ((ContainerMachine) container).setID(ID);
-//            ((ContainerMachine) container).getTile().setCustomName(ID);
 
             WorldServer server = netHandler.playerEntity.getServerWorld();
             for (EntityPlayer player : server.playerEntities)

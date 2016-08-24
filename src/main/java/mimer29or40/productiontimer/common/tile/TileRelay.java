@@ -339,14 +339,14 @@ public class TileRelay extends TileMachine implements ISidedInventory
     }
 
     @Override
-    public Container createContainer(InventoryPlayer inventoryplayer, World world, BlockPos pos)
+    public Container createContainer(int id, InventoryPlayer inventoryplayer, World world, BlockPos pos)
     {
         return new ContainerRelay(inventoryplayer, this);
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public GuiScreen createGui(InventoryPlayer inventoryplayer, World world, BlockPos pos)
+    public GuiScreen createGui(int id, InventoryPlayer inventoryplayer, World world, BlockPos pos)
     {
         return new GuiRelay(inventoryplayer, this);
     }

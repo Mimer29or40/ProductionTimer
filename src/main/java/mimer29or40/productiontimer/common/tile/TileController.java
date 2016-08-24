@@ -1,12 +1,16 @@
 package mimer29or40.productiontimer.common.tile;
 
 import mimer29or40.productiontimer.client.gui.GuiController;
+import mimer29or40.productiontimer.client.gui.GuiControllerEntry;
 import mimer29or40.productiontimer.common.container.ContainerController;
+import mimer29or40.productiontimer.common.container.ContainerEntry;
 import mimer29or40.productiontimer.common.model.ConnectionType;
+import mimer29or40.productiontimer.common.model.Entry;
 import mimer29or40.productiontimer.common.model.Relay;
-import mimer29or40.productiontimer.common.util.Log;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -14,84 +18,90 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
 
 public class TileController extends TileMachine
 {
     private static final String TAG_LINKED_RELAYS = "Relays";
+    private static final String TAG_ENTRIES       = "Entries";
 
-    public Map<String, BlockPos> trackedBlocks = new HashMap<>();
-    public ArrayList<Relay>      linkedRelays  = new ArrayList<>();
-//    private HashMap<String, BlockPos> linkedRelays = new HashMap<>();
+    public ArrayList<Relay> linkedRelays  = new ArrayList<>();
+    public ArrayList<Entry> entries = new ArrayList<>();
+    public int              selectedEntry = -1;
 
-    private File saveFolder;
-    private File nextIDFile;
-    public File controllerFolder;
+//    private File saveFolder;
+//    private File nextIDFile;
+//    public File controllerFolder;
+//
+//    public void createFolders()
+//    {
+//        try
+//        {
+//            saveFolder = new File(DimensionManager.getCurrentSaveRootDirectory(), "ProductionTimer");
+//            if (!saveFolder.exists()) Files.createDirectory(saveFolder.toPath());
+//
+//            nextIDFile = new File(saveFolder, "nextID");
+//            if (!nextIDFile.exists())
+//            {
+//                Files.createFile(nextIDFile.toPath());
+//                PrintWriter writer = new PrintWriter(nextIDFile);
+//                writer.print("0");
+//                writer.close();
+//            }
+//
+//            String controllerFolderName;
+//            if (hasCustomName())
+//                controllerFolderName = getName();
+//            else
+//                controllerFolderName = "" + getNextID();
+//
+//            controllerFolder = new File(saveFolder, controllerFolderName);
+//            if (!controllerFolder.exists()) Files.createDirectory(controllerFolder.toPath());
+//        }
+//        catch (IOException e)
+//        {
+//            Log.error("An error occurred when creating a save folder.");
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    public int getNextID() throws IOException
+//    {
+//        List<String> lines = Files.readAllLines(nextIDFile.toPath());
+//
+//        int nextID = 0;
+//
+//        for (String line : lines)
+//            nextID = Integer.valueOf(line);
+//
+//        PrintWriter writer = new PrintWriter(nextIDFile);
+//        writer.print(nextID + 1);
+//        writer.close();
+//
+//        return nextID;
+//    }
 
-    public void createFolders()
+    public TileController()
     {
-        try
+        for (int i = 0; i < 12; i++)
         {
-            saveFolder = new File(DimensionManager.getCurrentSaveRootDirectory(), "ProductionTimer");
-            if (!saveFolder.exists()) Files.createDirectory(saveFolder.toPath());
-
-            nextIDFile = new File(saveFolder, "nextID");
-            if (!nextIDFile.exists())
+            Entry entry = new Entry(this, "Entry " + i);
+            entry.inputRelayName = "Input Relay " + i;
+            entry.outputRelayName = "Output Relay " + i;
+            for (int item = 0; item < 9; item++)
             {
-                Files.createFile(nextIDFile.toPath());
-                PrintWriter writer = new PrintWriter(nextIDFile);
-                writer.print("0");
-                writer.close();
+                entry.setInputItemStack(item, new ItemStack(Blocks.GOLD_BLOCK, 64));
             }
-
-            String controllerFolderName;
-            if (hasCustomName())
-                controllerFolderName = getName();
-            else
-                controllerFolderName = "" + getNextID();
-
-            controllerFolder = new File(saveFolder, controllerFolderName);
-            if (!controllerFolder.exists()) Files.createDirectory(controllerFolder.toPath());
+//            for (int j = 0; j < 9; j++)
+//            {
+//                entry.setOutputItemStack(j, new ItemStack(Blocks.GOLD_BLOCK, 64));
+//            }
+            entries.add(entry);
         }
-        catch (IOException e)
-        {
-            Log.error("An error occurred when creating a save folder.");
-            e.printStackTrace();
-        }
-    }
-
-    public int getNextID() throws IOException
-    {
-        List<String> lines = Files.readAllLines(nextIDFile.toPath());
-
-        int nextID = 0;
-
-        for (String line : lines)
-            nextID = Integer.valueOf(line);
-
-        PrintWriter writer = new PrintWriter(nextIDFile);
-        writer.print(nextID + 1);
-        writer.close();
-
-        return nextID;
-    }
-
-    public ArrayList<Relay> getLinkedRelays()
-    {
-        return (ArrayList<Relay>) linkedRelays.clone();
-    }
-
-    public void inputFound(ItemStack itemStack, long timeFound)
-    {
-        worldObj.getWorldTime();
+        markDirty();
     }
 
     public ConnectionType linkRelay(BlockPos relayPos)
@@ -157,6 +167,18 @@ public class TileController extends TileMachine
         markDirtyClient();
     }
 
+    public void addEntry(Entry entry)
+    {
+        entries.add(entry);
+        markDirtyClient();
+    }
+
+    public void removeEntry(int index)
+    {
+        entries.remove(index);
+        markDirtyClient();
+    }
+
     public void readCustomNBT(NBTTagCompound compound)
     {
         super.readCustomNBT(compound);
@@ -165,17 +187,36 @@ public class TileController extends TileMachine
             return;
 
         NBTTagList nbtLinkedRelays = compound.getTagList(TAG_LINKED_RELAYS, 10);
-
         linkedRelays.clear();
         for (int i = 0; i < nbtLinkedRelays.tagCount(); i++)
         {
             NBTTagCompound nbtRelay = nbtLinkedRelays.getCompoundTagAt(i);
             String name = nbtRelay.getString("id");
-            BlockPos pos = new BlockPos(nbtRelay.getInteger("x"),
-                                        nbtRelay.getInteger("y"),
-                                        nbtRelay.getInteger("z"));
-//            linkRelay(pos);
+            BlockPos pos = new BlockPos(nbtRelay.getInteger("x"), nbtRelay.getInteger("y"), nbtRelay.getInteger("z"));
             linkedRelays.add(new Relay(name, pos));
+        }
+
+        NBTTagList nbtEntries = compound.getTagList(TAG_ENTRIES, 10);
+        entries.clear();
+        for (int i = 0; i < nbtEntries.tagCount(); i++)
+        {
+            NBTTagCompound nbtEntry = nbtEntries.getCompoundTagAt(i);
+
+            Entry entry = new Entry(this);
+            entry.name = nbtEntry.getString("name");
+            entry.inputRelayName = nbtEntry.getString("inputRelay");
+            entry.outputRelayName = nbtEntry.getString("outputRelay");
+
+            NBTTagList nbtEntryInputItems = nbtEntry.getTagList("items", 10);
+            for (int j = 0; j < nbtEntryInputItems.tagCount(); j++)
+            {
+                NBTTagCompound nbtEntryInputItem = nbtEntryInputItems.getCompoundTagAt(j);
+                int k = nbtEntryInputItem.getByte("slot") & 255;
+
+                if (0 <= k && k < entry.itemAmount)
+                    entry.setInventorySlotContents(k, ItemStack.loadItemStackFromNBT(nbtEntryInputItem));
+            }
+            entries.add(entry);
         }
     }
 
@@ -184,30 +225,67 @@ public class TileController extends TileMachine
         super.writeCustomNBT(compound);
 
         NBTTagList nbtLinkedRelays = new NBTTagList();
-
         for (Relay relay : linkedRelays)
         {
             NBTTagCompound nbtRelay = new NBTTagCompound();
+
             nbtRelay.setString("id", relay.getName());
             nbtRelay.setInteger("x", relay.getX());
             nbtRelay.setInteger("y", relay.getY());
             nbtRelay.setInteger("z", relay.getZ());
+
             nbtLinkedRelays.appendTag(nbtRelay);
         }
-
         compound.setTag(TAG_LINKED_RELAYS, nbtLinkedRelays);
+
+        NBTTagList nbtEntries = new NBTTagList();
+        for (Entry entry : entries)
+        {
+            NBTTagCompound nbtEntry = new NBTTagCompound();
+
+            nbtEntry.setString("name", entry.name);
+            nbtEntry.setString("inputRelay", entry.inputRelayName);
+            nbtEntry.setString("outputRelay", entry.outputRelayName);
+
+            NBTTagList nbtEntryInputItems = new NBTTagList();
+            for (int i = 0; i < entry.getSizeInventory(); i++)
+            {
+                ItemStack stack = entry.getStackInSlot(i);
+                if (stack != null)
+                {
+                    NBTTagCompound nbttagcompound = new NBTTagCompound();
+                    nbttagcompound.setByte("slot", (byte) i);
+                    stack.writeToNBT(nbttagcompound);
+                    nbtEntryInputItems.appendTag(nbttagcompound);
+                }
+            }
+            nbtEntry.setTag("items", nbtEntryInputItems);
+
+            nbtEntries.appendTag(nbtEntry);
+        }
+        compound.setTag(TAG_ENTRIES, nbtEntries);
     }
 
     @Override
-    public Container createContainer(InventoryPlayer inventoryplayer, World world, BlockPos pos)
+    public Container createContainer(int id, InventoryPlayer inventoryplayer, World world, BlockPos pos)
     {
+        switch (id)
+        {
+            case 1:
+                return new ContainerEntry(this, inventoryplayer, entries.get(0));
+        }
         return new ContainerController(this);
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public GuiScreen createGui(InventoryPlayer inventoryplayer, World world, BlockPos pos)
+    public GuiScreen createGui(int id, InventoryPlayer inventoryplayer, World world, BlockPos pos)
     {
+        switch (id)
+        {
+            case 1:
+                return new GuiControllerEntry((GuiController) Minecraft.getMinecraft().currentScreen, inventoryplayer, entries.get(selectedEntry));
+        }
         return new GuiController(this);
     }
 }

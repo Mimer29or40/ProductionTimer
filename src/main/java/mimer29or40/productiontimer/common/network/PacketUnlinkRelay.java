@@ -9,7 +9,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-public class PacketUnlinkRelay extends AbstractPacketThreadSafe
+public class PacketUnlinkRelay extends AbstractPacket
 {
     public BlockPos relayPos;
     public BlockPos controllerPos;
@@ -42,7 +42,7 @@ public class PacketUnlinkRelay extends AbstractPacketThreadSafe
     }
 
     @Override
-    public void handleClientSafe(NetHandlerPlayClient netHandler)
+    public void handleClientMessage(NetHandlerPlayClient netHandler)
     {
         World world = Minecraft.getMinecraft().theWorld;
         TileEntity tile = world.getTileEntity(controllerPos);
@@ -56,7 +56,7 @@ public class PacketUnlinkRelay extends AbstractPacketThreadSafe
     }
 
     @Override
-    public void handleServerSafe(NetHandlerPlayServer netHandler)
+    public void handleServerMessage(NetHandlerPlayServer netHandler)
     {
         World world = netHandler.playerEntity.worldObj;
         TileEntity tile = world.getTileEntity(controllerPos);

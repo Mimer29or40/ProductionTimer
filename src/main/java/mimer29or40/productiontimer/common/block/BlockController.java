@@ -3,6 +3,7 @@ package mimer29or40.productiontimer.common.block;
 import mimer29or40.productiontimer.PTNames;
 import mimer29or40.productiontimer.ProductionTimer;
 import mimer29or40.productiontimer.common.container.ContainerMachine;
+import mimer29or40.productiontimer.common.model.Entry;
 import mimer29or40.productiontimer.common.network.PTNetwork;
 import mimer29or40.productiontimer.common.network.PacketUnlinkRelay;
 import mimer29or40.productiontimer.common.registry.IRegisterRecipe;
@@ -11,6 +12,7 @@ import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -54,6 +56,11 @@ public class BlockController extends BlockMachine implements ITileEntityProvider
     public void breakBlock(World world, BlockPos pos, IBlockState blockstate)
     {
         PTNetwork.sendToServer(new PacketUnlinkRelay(pos));
+        TileController tileController = (TileController) world.getTileEntity(pos);
+        for (Entry entry : tileController.entries)
+        {
+            InventoryHelper.dropInventoryItems(world, pos, entry);
+        }
 
         super.breakBlock(world, pos, blockstate);
     }

@@ -10,8 +10,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public interface IRegisterGui
 {
-    Container createContainer(InventoryPlayer inventoryplayer, World world, BlockPos pos);
+    Container createContainer(int id, InventoryPlayer inventoryplayer, World world, BlockPos pos);
 
     @SideOnly(Side.CLIENT)
-    GuiScreen createGui(InventoryPlayer inventoryplayer, World world, BlockPos pos);
+    GuiScreen createGui(int id, InventoryPlayer inventoryplayer, World world, BlockPos pos);
 }
