@@ -35,6 +35,9 @@ public class PTNetwork
         registerPacket(PacketUpdateEntry.class);
 
         registerPacketServer(PacketOpenGui.class);
+        registerPacketServer(PacketNewEntry.class);
+        registerPacketServer(PacketSelectEntry.class);
+        registerPacketServer(PacketDeleteEntry.class);
     }
 
     public static void sendToAll(AbstractPacket packet)

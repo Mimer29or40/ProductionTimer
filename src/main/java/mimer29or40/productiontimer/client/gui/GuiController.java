@@ -6,9 +6,7 @@ import mimer29or40.productiontimer.client.gui.components.GuiComponentGraphTab;
 import mimer29or40.productiontimer.client.gui.components.GuiComponentList;
 import mimer29or40.productiontimer.common.container.ContainerController;
 import mimer29or40.productiontimer.common.model.Entry;
-import mimer29or40.productiontimer.common.network.PTNetwork;
-import mimer29or40.productiontimer.common.network.PacketMachineID;
-import mimer29or40.productiontimer.common.network.PacketOpenGui;
+import mimer29or40.productiontimer.common.network.*;
 import mimer29or40.productiontimer.common.tile.TileController;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.GlStateManager;
@@ -34,15 +32,15 @@ public class GuiController extends GuiMachine
 
     private GuiComponentListEntry guiListEntry;
 
-    public  int                                   selectedTab = 0;
-    private final ArrayList<GuiComponentGraphTab> guiTabs     = new ArrayList<>();
-
-    public  int                                 selectedTimeButton = 0;
-    private final ArrayList<GuiComponentButton> guiTimeButtons     = new ArrayList<>();
+    public        int                             selectedTab       = 0;
+    private final ArrayList<GuiComponentGraphTab> guiTabs           = new ArrayList<>();
+    public        int                             selectedTimeScale = 0;
+    private final ArrayList<GuiComponentButton>   guiTimeButtons    = new ArrayList<>();
 
     private GuiComponentButton buttonRelays;
     private GuiComponentButton buttonEditRelay;
     private GuiComponentButton buttonNewRelay;
+    private GuiComponentButton buttonDeleteRelay;
 
     public GuiController(TileController tileController)
     {
@@ -51,13 +49,6 @@ public class GuiController extends GuiMachine
         this.tileController = tileController;
         xSize = 256;
         ySize = 256;
-    }
-
-    public void setSelectedEntry(int index)
-    {
-        if (index == tileController.selectedEntry)
-            return;
-        tileController.selectedEntry = index;
     }
 
     @Override
@@ -86,12 +77,13 @@ public class GuiController extends GuiMachine
         guiTimeButtons.add(new GuiComponentButton(3, guiLeft + 234, guiTop + 147 + 15 * 3, 10, 10, null, "30 Seconds"));
         guiTimeButtons.add(new GuiComponentButton(4, guiLeft + 234, guiTop + 147 + 15 * 4, 10, 10, null, "60 Seconds"));
         guiTimeButtons.add(new GuiComponentButton(5, guiLeft + 234, guiTop + 147 + 15 * 5, 10, 10, null, "5 Minutes"));
-        guiTimeButtons.get(selectedTimeButton).selected = true;
+        guiTimeButtons.get(selectedTimeScale).selected = true;
 
         buttonRelays = new GuiComponentButton(0, guiLeft + 172, guiTop + 7, 40, 12, "Relays");
 
         buttonEditRelay = new GuiComponentButton(0, guiLeft + 222, guiTop + 7, 30, 12, "Edit");
         buttonNewRelay = new GuiComponentButton(0, guiLeft + 262, guiTop + 7, 30, 12, "New");
+        buttonDeleteRelay = new GuiComponentButton(0, guiLeft + 302, guiTop + 7, 30, 12, "Delete");
     }
 
     @Override
@@ -133,8 +125,8 @@ public class GuiController extends GuiMachine
         {
             if (button.mouseOver(mouseX - 1, mouseY - 1))
             {
-                guiTimeButtons.get(selectedTimeButton).selected = false;
-                selectedTimeButton = button.id;
+                guiTimeButtons.get(selectedTimeScale).selected = false;
+                selectedTimeScale = button.id;
                 button.selected = true;
                 break;
             }
@@ -155,17 +147,26 @@ public class GuiController extends GuiMachine
 
         if (buttonNewRelay.mouseOver(mouseX - 1, mouseY - 1))
         {
-            Entry newEntry = new Entry(tileController);
-            tileController.addEntry(newEntry);
+            PTNetwork.sendToServer(new PacketNewEntry(tileController.getPos()));
+        }
+
+        if (buttonDeleteRelay.mouseOver(mouseX - 1, mouseY - 1))
+        {
+            if (tileController.selectedEntry != -1)
+            {
+                PTNetwork.sendToServer(new PacketDeleteEntry(tileController.getPos(), tileController.selectedEntry));
+            }
         }
     }
 
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException
     {
-        if (keyCode == 1) this.mc.thePlayer.closeScreen();
-
-        if (textFieldID.isFocused())
+        if (keyCode == 1)
+        {
+            mc.thePlayer.closeScreen();
+        }
+        else if (textFieldID.isFocused())
         {
             textFieldID.textboxKeyTyped(typedChar, keyCode);
             PTNetwork.sendToServer(new PacketMachineID(textFieldID.getText()));
@@ -217,6 +218,7 @@ public class GuiController extends GuiMachine
         buttonRelays.drawBackgroundLayer(mc, mouseX, mouseY);
         buttonEditRelay.drawBackgroundLayer(mc, mouseX, mouseY);
         buttonNewRelay.drawBackgroundLayer(mc, mouseX, mouseY);
+        buttonDeleteRelay.drawBackgroundLayer(mc, mouseX, mouseY);
     }
 
     @Override
@@ -244,15 +246,15 @@ public class GuiController extends GuiMachine
         }
 
         @Override
-        public void entryClicked(int entry, boolean doubleClick)
+        public int getSelectedEntry()
         {
-            setSelectedEntry(entry);
+            return tileController.selectedEntry;
         }
 
         @Override
-        public boolean isSelected(int index)
+        public void setSelectedEntry(int entry)
         {
-            return selectedEntry == index;
+            PTNetwork.sendToServer(new PacketSelectEntry(tileController.getPos(), entry));
         }
 
         @Override

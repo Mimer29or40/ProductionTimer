@@ -28,8 +28,6 @@ public abstract class GuiComponentList extends GuiComponentBase
     protected float scrollFactor;
     protected float scrollDistance;
 
-    public int selectedEntry = -1;
-
     protected long lastClickTime = 0L;
 
     protected boolean highlightSelected = true;
@@ -48,14 +46,18 @@ public abstract class GuiComponentList extends GuiComponentBase
 
     public abstract int getSize();
 
+    public abstract int getSelectedEntry();
+
+    public abstract void setSelectedEntry(int entry);
+
     public void entryClicked(int entry, boolean doubleClick)
     {
-        selectedEntry = entry;
+        setSelectedEntry(entry);
     }
 
     public boolean isSelected(int entry)
     {
-        return selectedEntry == entry;
+        return getSelectedEntry() == entry;
     }
 
     protected int getContentHeight()
@@ -116,8 +118,8 @@ public abstract class GuiComponentList extends GuiComponentBase
 
                     if (entryLeft <= mouseX && mouseX <= entryLeft + entryWidth && listLength > entryIndex && entryIndex >= 0 && mouseListY >= 0)
                     {
-                        entryClicked(entryIndex, entryIndex == selectedEntry && System.currentTimeMillis() - lastClickTime < 250L);
-                        selectedEntry = entryIndex;
+                        entryClicked(entryIndex, entryIndex == getSelectedEntry() && System.currentTimeMillis() - lastClickTime < 250L);
+                        setSelectedEntry(entryIndex);
                         lastClickTime = System.currentTimeMillis();
                     }
 

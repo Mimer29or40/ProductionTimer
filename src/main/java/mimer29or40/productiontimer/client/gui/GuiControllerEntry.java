@@ -85,8 +85,6 @@ public class GuiControllerEntry extends GuiContainer
     {
         super.mouseClicked(mouseX, mouseY, mouseButton);
 
-        if (mouseButton == 1) mc.displayGuiScreen(parent);
-
         entryName.mouseClicked(mouseX, mouseY, mouseButton);
         entryInputRelay.mouseClicked(mouseX, mouseY, mouseButton);
         entryOutputRelay.mouseClicked(mouseX, mouseY, mouseButton);
@@ -95,9 +93,11 @@ public class GuiControllerEntry extends GuiContainer
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException
     {
-        if (keyCode == 1) mc.displayGuiScreen(parent);
-
-        if (entryName.isFocused())
+        if (keyCode == 1)
+        {
+            mc.displayGuiScreen(parent);
+        }
+        else if (entryName.isFocused())
         {
             entryName.textboxKeyTyped(typedChar, keyCode);
             entry.name = entryName.getText();

@@ -28,9 +28,9 @@ public class TileController extends TileMachine
     private static final String TAG_LINKED_RELAYS = "Relays";
     private static final String TAG_ENTRIES       = "Entries";
 
-    public ArrayList<Relay> linkedRelays  = new ArrayList<>();
-    public ArrayList<Entry> entries = new ArrayList<>();
-    public int              selectedEntry = -1;
+    public ArrayList<Relay> linkedRelays      = new ArrayList<>();
+    public ArrayList<Entry> entries           = new ArrayList<>();
+    public int              selectedEntry     = -1;
 
 //    private File saveFolder;
 //    private File nextIDFile;
@@ -93,15 +93,15 @@ public class TileController extends TileMachine
             entry.outputRelayName = "Output Relay " + i;
             for (int item = 0; item < 9; item++)
             {
-                entry.setInputItemStack(item, new ItemStack(Blocks.GOLD_BLOCK, 64));
+                entry.setInputItemStack(item, new ItemStack(Blocks.IRON_BLOCK, 2));
             }
-//            for (int j = 0; j < 9; j++)
-//            {
-//                entry.setOutputItemStack(j, new ItemStack(Blocks.GOLD_BLOCK, 64));
-//            }
+            for (int j = 0; j < 9; j++)
+            {
+                entry.setOutputItemStack(j, new ItemStack(Blocks.GOLD_BLOCK, 2));
+            }
             entries.add(entry);
         }
-        markDirty();
+        markDirtyClient();
     }
 
     public ConnectionType linkRelay(BlockPos relayPos)
@@ -186,6 +186,8 @@ public class TileController extends TileMachine
         if (compound == null)
             return;
 
+        selectedEntry = compound.getInteger("entry");
+
         NBTTagList nbtLinkedRelays = compound.getTagList(TAG_LINKED_RELAYS, 10);
         linkedRelays.clear();
         for (int i = 0; i < nbtLinkedRelays.tagCount(); i++)
@@ -213,7 +215,7 @@ public class TileController extends TileMachine
                 NBTTagCompound nbtEntryInputItem = nbtEntryInputItems.getCompoundTagAt(j);
                 int k = nbtEntryInputItem.getByte("slot") & 255;
 
-                if (0 <= k && k < entry.itemAmount)
+                if (0 <= k && k < entry.itemAmount * 2)
                     entry.setInventorySlotContents(k, ItemStack.loadItemStackFromNBT(nbtEntryInputItem));
             }
             entries.add(entry);
@@ -223,6 +225,8 @@ public class TileController extends TileMachine
     public void writeCustomNBT(NBTTagCompound compound)
     {
         super.writeCustomNBT(compound);
+
+        compound.setInteger("entry", selectedEntry);
 
         NBTTagList nbtLinkedRelays = new NBTTagList();
         for (Relay relay : linkedRelays)
@@ -272,7 +276,7 @@ public class TileController extends TileMachine
         switch (id)
         {
             case 1:
-                return new ContainerEntry(this, inventoryplayer, entries.get(0));
+                return new ContainerEntry(this, inventoryplayer, entries.get(selectedEntry));
         }
         return new ContainerController(this);
     }

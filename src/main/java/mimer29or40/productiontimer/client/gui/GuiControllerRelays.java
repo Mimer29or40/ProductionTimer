@@ -74,21 +74,34 @@ public class GuiControllerRelays extends GuiScreen
             mc.displayGuiScreen(parent);
         }
 
-        if (buttonHighlight.mouseOver(mouseX, mouseY) && guiListRelay.selectedEntry != -1)
+        if (buttonHighlight.mouseOver(mouseX, mouseY) && guiListRelay.getSelectedEntry() != -1)
         {
-            Relay relay = guiListRelay.relayList.get(guiListRelay.selectedEntry);
+            Relay relay = guiListRelay.relayList.get(guiListRelay.getSelectedEntry());
             ProductionTimer.renderHelper.addBlockToHighLight(relay.getPos());
         }
 
         if (buttonUnlink.mouseOver(mouseX, mouseY))
         {
-            if (guiListRelay.selectedEntry != -1)
+            if (guiListRelay.getSelectedEntry() != -1)
             {
-                Relay relay = guiListRelay.relayList.get(guiListRelay.selectedEntry);
+                Relay relay = guiListRelay.relayList.get(guiListRelay.getSelectedEntry());
                 PTNetwork.sendToServer(new PacketUnlinkRelay(relay.getPos(), parent.tileController.getPos()));
-                guiListRelay.relayList.remove(guiListRelay.selectedEntry);
-                guiListRelay.selectedEntry = -1;
+                guiListRelay.relayList.remove(guiListRelay.getSelectedEntry());
+                guiListRelay.setSelectedEntry(-1);
             }
+        }
+    }
+
+    @Override
+    protected void keyTyped(char typedChar, int keyCode) throws IOException
+    {
+        if (keyCode == 1)
+        {
+            mc.displayGuiScreen(parent);;
+        }
+        else
+        {
+            super.keyTyped(typedChar, keyCode);
         }
     }
 
@@ -114,6 +127,7 @@ public class GuiControllerRelays extends GuiScreen
     private class GuiComponentListRelay extends GuiComponentList
     {
         private ArrayList<Relay> relayList;
+        private int selectedEntry;
 
         public GuiComponentListRelay(int left, int top, int width, int height, int entryHeight)
         {
@@ -125,6 +139,18 @@ public class GuiControllerRelays extends GuiScreen
         public int getSize()
         {
             return relayList.size();
+        }
+
+        @Override
+        public int getSelectedEntry()
+        {
+            return selectedEntry;
+        }
+
+        @Override
+        public void setSelectedEntry(int entry)
+        {
+            selectedEntry = entry;
         }
 
         @Override
