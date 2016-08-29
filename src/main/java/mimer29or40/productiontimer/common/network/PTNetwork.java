@@ -33,10 +33,10 @@ public class PTNetwork
         registerPacket(PacketLinkRelay.class);
         registerPacket(PacketUnlinkRelay.class);
         registerPacket(PacketUpdateEntry.class);
+        registerPacket(PacketNewEntry.class);
+        registerPacket(PacketUpdateController.class);
 
         registerPacketServer(PacketOpenGui.class);
-        registerPacketServer(PacketNewEntry.class);
-        registerPacketServer(PacketSelectEntry.class);
         registerPacketServer(PacketDeleteEntry.class);
     }
 

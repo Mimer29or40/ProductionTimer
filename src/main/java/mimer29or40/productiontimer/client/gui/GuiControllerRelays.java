@@ -6,10 +6,10 @@ import mimer29or40.productiontimer.client.gui.components.GuiComponentButton;
 import mimer29or40.productiontimer.client.gui.components.GuiComponentList;
 import mimer29or40.productiontimer.common.model.Relay;
 import mimer29or40.productiontimer.common.network.PTNetwork;
+import mimer29or40.productiontimer.common.network.PacketOpenGui;
 import mimer29or40.productiontimer.common.network.PacketUnlinkRelay;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.input.Mouse;
 
@@ -26,6 +26,7 @@ public class GuiControllerRelays extends GuiScreen
     protected int guiLeft;
     protected int guiTop;
 
+    private int selectedRelay = -1;
     private GuiComponentListRelay guiListRelay;
 
     GuiComponentButton buttonBack;
@@ -69,9 +70,9 @@ public class GuiControllerRelays extends GuiScreen
     {
         super.mouseClicked(mouseX, mouseY, mouseButton);
 
-        if (mouseButton == 1 || buttonBack.mouseOver(mouseX, mouseY))
+        if (buttonBack.mouseOver(mouseX, mouseY))
         {
-            mc.displayGuiScreen(parent);
+            PTNetwork.sendToServer(new PacketOpenGui(0, parent.tileController.getPos()));
         }
 
         if (buttonHighlight.mouseOver(mouseX, mouseY) && guiListRelay.getSelectedEntry() != -1)
@@ -80,15 +81,12 @@ public class GuiControllerRelays extends GuiScreen
             ProductionTimer.renderHelper.addBlockToHighLight(relay.getPos());
         }
 
-        if (buttonUnlink.mouseOver(mouseX, mouseY))
+        if (buttonUnlink.mouseOver(mouseX, mouseY) && guiListRelay.getSelectedEntry() != -1)
         {
-            if (guiListRelay.getSelectedEntry() != -1)
-            {
-                Relay relay = guiListRelay.relayList.get(guiListRelay.getSelectedEntry());
-                PTNetwork.sendToServer(new PacketUnlinkRelay(relay.getPos(), parent.tileController.getPos()));
-                guiListRelay.relayList.remove(guiListRelay.getSelectedEntry());
-                guiListRelay.setSelectedEntry(-1);
-            }
+            Relay relay = guiListRelay.relayList.get(guiListRelay.getSelectedEntry());
+            PTNetwork.sendToServer(new PacketUnlinkRelay(relay.getPos(), parent.tileController.getPos()));
+            guiListRelay.relayList.remove(guiListRelay.getSelectedEntry());
+            guiListRelay.setSelectedEntry(-1);
         }
     }
 
@@ -97,7 +95,8 @@ public class GuiControllerRelays extends GuiScreen
     {
         if (keyCode == 1)
         {
-            mc.displayGuiScreen(parent);;
+//            mc.displayGuiScreen(parent);
+            PTNetwork.sendToServer(new PacketOpenGui(0, parent.tileController.getPos()));
         }
         else
         {
@@ -127,7 +126,6 @@ public class GuiControllerRelays extends GuiScreen
     private class GuiComponentListRelay extends GuiComponentList
     {
         private ArrayList<Relay> relayList;
-        private int selectedEntry;
 
         public GuiComponentListRelay(int left, int top, int width, int height, int entryHeight)
         {
@@ -144,17 +142,17 @@ public class GuiControllerRelays extends GuiScreen
         @Override
         public int getSelectedEntry()
         {
-            return selectedEntry;
+            return selectedRelay;
         }
 
         @Override
         public void setSelectedEntry(int entry)
         {
-            selectedEntry = entry;
+            selectedRelay = entry;
         }
 
         @Override
-        protected void drawEntry(int entryId, int entryLeft, int entryTop, int entryBuffer, Tessellator tess)
+        protected void drawEntry(int entryId, int entryLeft, int entryTop, int entryHeight, int entryWidth)
         {
             Relay relay = relayList.get(entryId);
 //            String name = entry.getName();

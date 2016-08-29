@@ -1,9 +1,9 @@
 package mimer29or40.productiontimer.common.network;
 
 import io.netty.buffer.ByteBuf;
-import mimer29or40.productiontimer.ProductionTimer;
 import mimer29or40.productiontimer.common.model.Entry;
 import mimer29or40.productiontimer.common.tile.TileController;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.NetHandlerPlayServer;
@@ -36,25 +36,43 @@ public class PacketNewEntry extends AbstractPacket
     @Override
     public void handleClientMessage(NetHandlerPlayClient netHandler)
     {
-//        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-//        TileEntity tile = player.worldObj.getTileEntity(pos);
-//        if (tile instanceof TileController)
-//        {
-//            ((TileController) tile).addEntry(new Entry((TileController) tile));
-//        }
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        TileEntity tile = player.worldObj.getTileEntity(pos);
+        if (tile instanceof TileController)
+        {
+            TileController tileController = (TileController) tile;
+            tileController.addEntry(new Entry(tileController));
+            tileController.selectedEntry = tileController.entries.size() - 1;
+        }
     }
 
     @Override
     public void handleServerMessage(NetHandlerPlayServer netHandler)
     {
-        EntityPlayer player = netHandler.playerEntity;
-        TileEntity tile = player.worldObj.getTileEntity(pos);
+//        EntityPlayer player = netHandler.playerEntity;
+        TileEntity tile = netHandler.playerEntity.worldObj.getTileEntity(pos);
         if (tile instanceof TileController)
         {
-            ((TileController) tile).addEntry(new Entry((TileController) tile));
-            ((TileController) tile).selectedEntry = ((TileController) tile).entries.size() - 1;
-            BlockPos pos = tile.getPos();
-            player.openGui(ProductionTimer.INSTANCE, 1, player.worldObj, pos.getX(), pos.getY(), pos.getZ());
+            TileController tileController = (TileController) tile;
+
+            tileController.addEntry(new Entry((TileController) tile));
+            tileController.selectedEntry = tileController.entries.size() - 1;
+
+//            WorldServer server = netHandler.playerEntity.getServerWorld();
+//            for (EntityPlayer player : server.playerEntities)
+//            {
+//                if (player.openContainer instanceof ContainerController)
+//                {
+//                    if (((ContainerController) netHandler.playerEntity.openContainer).sameGui((ContainerController) player.openContainer))
+//                    {
+//                        PTNetwork.sendTo(this, (EntityPlayerMP) player);
+//                    }
+//                }
+//            }
+
+            // TODO make this work, this gets called before tile gets synced to client so this fails when going from 0 -> 1
+//            BlockPos pos = tile.getPos();
+//            netHandler.playerEntity.openGui(ProductionTimer.INSTANCE, 1, netHandler.playerEntity.worldObj, pos.getX(), pos.getY(), pos.getZ());
         }
     }
 }

@@ -37,7 +37,7 @@ public class GuiComponentButton extends GuiComponentBase
         if (buttonText != null)
         {
             int textColor = mouseOver(mouseX, mouseY) ? 0xFFFFA0 : 14737632;
-            drawCenteredString(mc.fontRendererObj, buttonText, left + width / 2, top + (height - 8) / 2, textColor);
+            drawTextCenter(buttonText, left + width / 2, top + (height - 8) / 2, textColor, true);
         }
     }
 

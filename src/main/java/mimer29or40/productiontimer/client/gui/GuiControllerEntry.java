@@ -4,6 +4,7 @@ import mimer29or40.productiontimer.PTInfo;
 import mimer29or40.productiontimer.common.container.ContainerEntry;
 import mimer29or40.productiontimer.common.model.Entry;
 import mimer29or40.productiontimer.common.network.PTNetwork;
+import mimer29or40.productiontimer.common.network.PacketOpenGui;
 import mimer29or40.productiontimer.common.network.PacketUpdateEntry;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -95,7 +96,7 @@ public class GuiControllerEntry extends GuiContainer
     {
         if (keyCode == 1)
         {
-            mc.displayGuiScreen(parent);
+            PTNetwork.sendToServer(new PacketOpenGui(0, parent.tileController.getPos()));
         }
         else if (entryName.isFocused())
         {

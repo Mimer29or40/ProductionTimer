@@ -10,7 +10,6 @@ import mimer29or40.productiontimer.common.model.Relay;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -25,12 +24,11 @@ import java.util.ArrayList;
 
 public class TileController extends TileMachine
 {
-    private static final String TAG_LINKED_RELAYS = "Relays";
-    private static final String TAG_ENTRIES       = "Entries";
-
     public ArrayList<Relay> linkedRelays      = new ArrayList<>();
     public ArrayList<Entry> entries           = new ArrayList<>();
     public int              selectedEntry     = -1;
+    public int              selectedTab       = 0;
+    public int              selectedTimeScale = 0;
 
 //    private File saveFolder;
 //    private File nextIDFile;
@@ -84,25 +82,25 @@ public class TileController extends TileMachine
 //        return nextID;
 //    }
 
-    public TileController()
-    {
-        for (int i = 0; i < 12; i++)
-        {
-            Entry entry = new Entry(this, "Entry " + i);
-            entry.inputRelayName = "Input Relay " + i;
-            entry.outputRelayName = "Output Relay " + i;
-            for (int item = 0; item < 9; item++)
-            {
-                entry.setInputItemStack(item, new ItemStack(Blocks.IRON_BLOCK, 2));
-            }
-            for (int j = 0; j < 9; j++)
-            {
-                entry.setOutputItemStack(j, new ItemStack(Blocks.GOLD_BLOCK, 2));
-            }
-            entries.add(entry);
-        }
-        markDirtyClient();
-    }
+//    public TileController()
+//    {
+////        for (int i = 0; i < 12; i++)
+////        {
+////            Entry entry = new Entry(this, "Entry " + i);
+////            entry.inputRelayName = "Input Relay " + i;
+////            entry.outputRelayName = "Output Relay " + i;
+////            for (int item = 0; item < 9; item++)
+////            {
+////                entry.setInputItemStack(item, new ItemStack(Blocks.IRON_BLOCK, 2));
+////            }
+////            for (int j = 0; j < 9; j++)
+////            {
+////                entry.setOutputItemStack(j, new ItemStack(Blocks.GOLD_BLOCK, 2));
+////            }
+////            entries.add(entry);
+////        }
+////        markDirtyClient();
+//    }
 
     public ConnectionType linkRelay(BlockPos relayPos)
     {
@@ -187,8 +185,10 @@ public class TileController extends TileMachine
             return;
 
         selectedEntry = compound.getInteger("entry");
+        selectedTab = compound.getInteger("tab");
+        selectedTimeScale = compound.getInteger("timeScale");
 
-        NBTTagList nbtLinkedRelays = compound.getTagList(TAG_LINKED_RELAYS, 10);
+        NBTTagList nbtLinkedRelays = compound.getTagList("Relays", 10);
         linkedRelays.clear();
         for (int i = 0; i < nbtLinkedRelays.tagCount(); i++)
         {
@@ -198,7 +198,7 @@ public class TileController extends TileMachine
             linkedRelays.add(new Relay(name, pos));
         }
 
-        NBTTagList nbtEntries = compound.getTagList(TAG_ENTRIES, 10);
+        NBTTagList nbtEntries = compound.getTagList("Entries", 10);
         entries.clear();
         for (int i = 0; i < nbtEntries.tagCount(); i++)
         {
@@ -227,6 +227,8 @@ public class TileController extends TileMachine
         super.writeCustomNBT(compound);
 
         compound.setInteger("entry", selectedEntry);
+        compound.setInteger("tab", selectedTab);
+        compound.setInteger("timeScale", selectedTimeScale);
 
         NBTTagList nbtLinkedRelays = new NBTTagList();
         for (Relay relay : linkedRelays)
@@ -240,7 +242,7 @@ public class TileController extends TileMachine
 
             nbtLinkedRelays.appendTag(nbtRelay);
         }
-        compound.setTag(TAG_LINKED_RELAYS, nbtLinkedRelays);
+        compound.setTag("Relays", nbtLinkedRelays);
 
         NBTTagList nbtEntries = new NBTTagList();
         for (Entry entry : entries)
@@ -267,7 +269,7 @@ public class TileController extends TileMachine
 
             nbtEntries.appendTag(nbtEntry);
         }
-        compound.setTag(TAG_ENTRIES, nbtEntries);
+        compound.setTag("Entries", nbtEntries);
     }
 
     @Override

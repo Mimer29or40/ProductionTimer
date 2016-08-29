@@ -48,8 +48,10 @@ public class PacketDeleteEntry extends AbstractPacket
         TileEntity tile = player.worldObj.getTileEntity(pos);
         if (tile instanceof TileController)
         {
-            if (((TileController) tile).selectedEntry > 0) ((TileController) tile).selectedEntry--;
-            ((TileController) tile).removeEntry(entry);
+            TileController tileController = (TileController) tile;
+            if (tileController.selectedEntry > 0) tileController.selectedEntry--;
+            tileController.removeEntry(entry);
+            if (tileController.entries.size() == 0) tileController.selectedEntry = -1;
         }
     }
 }

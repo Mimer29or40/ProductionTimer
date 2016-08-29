@@ -3,9 +3,6 @@ package mimer29or40.productiontimer.client.gui.components;
 import mimer29or40.productiontimer.PTInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.VertexBuffer;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -19,18 +16,23 @@ public abstract class GuiComponentList extends GuiComponentBase
     protected final int baseWidth;
     protected final int baseHeight;
 
+    protected final int border;
+
     protected final int entryHeight;
+    protected final int entryBorder;
+    protected final int entrySpacing;
+
+    protected final int scrollBarWidth = 6;
 
     protected int mouseX;
     protected int mouseY;
 
     protected float initialMouseClickY = -2.0F;
+    protected int   firstEntry;
     protected float scrollFactor;
     protected float scrollDistance;
 
     protected long lastClickTime = 0L;
-
-    protected boolean highlightSelected = true;
 
     public GuiComponentList(int id, int left, int top, int width, int height, int entryHeight)
     {
@@ -41,7 +43,13 @@ public abstract class GuiComponentList extends GuiComponentBase
         this.baseWidth = width - 2;
         this.baseHeight = height - 2;
 
+        this.border = 2;
+
         this.entryHeight = entryHeight;
+        this.entryBorder = 2;
+        this.entrySpacing = 2;
+
+        this.firstEntry = 0;
     }
 
     public abstract int getSize();
@@ -49,6 +57,29 @@ public abstract class GuiComponentList extends GuiComponentBase
     public abstract int getSelectedEntry();
 
     public abstract void setSelectedEntry(int entry);
+
+    public boolean mouseOverEntry(int entryId, int mouseX, int mouseY)
+    {
+        if (mouseOver(mouseX, mouseY))
+        {
+            if (0 <= entryId && entryId < getSize())
+            {
+                int mouseListY = mouseY - baseTop + firstEntry * (entryHeight + entrySpacing) - border;
+
+                int entryTop = entryId * (entryHeight + entrySpacing);
+
+                if (entryTop < mouseListY && mouseListY <= entryTop + entryHeight)
+                {
+                    int entryLeft = baseLeft + border;
+                    int scrollBarLeft = baseLeft + baseWidth - scrollBarWidth;
+                    int entryWidth = getContentHeight() - baseHeight > 0 ? scrollBarLeft - entryLeft - border : baseWidth - 2 * border;
+
+                    return entryLeft < mouseX && mouseX <= entryLeft + entryWidth;
+                }
+            }
+        }
+        return false;
+    }
 
     public void entryClicked(int entry, boolean doubleClick)
     {
@@ -62,7 +93,7 @@ public abstract class GuiComponentList extends GuiComponentBase
 
     protected int getContentHeight()
     {
-        return getSize() * entryHeight;
+        return getSize() * entryHeight + 2 * border + (getSize() - 1) * entrySpacing;
     }
 
     private void applyScrollLimits()
@@ -87,7 +118,7 @@ public abstract class GuiComponentList extends GuiComponentBase
         }
     }
 
-    protected abstract void drawEntry(int entryId, int entryLeft, int entryTop, int entryBuffer, Tessellator tess);
+    protected abstract void drawEntry(int entryId, int entryLeft, int entryTop, int entryHeight, int entryWidth);
 
     @Override
     public void drawBackgroundLayer(Minecraft mc, int mouseX, int mouseY)
@@ -97,15 +128,12 @@ public abstract class GuiComponentList extends GuiComponentBase
 
         ResourceLocation ELEMENTS = new ResourceLocation(PTInfo.MOD_ID + ":textures/gui/elements.png");
 
-        int listLength = getSize();
-
-        int scrollBarWidth = 12;
         int scrollBarLeft = baseLeft + baseWidth - scrollBarWidth;
 
-        int entryLeft = baseLeft;
-        int entryWidth = scrollBarLeft - 1 - entryLeft;
+        int extraHeight = getContentHeight() - baseHeight;
 
-        int border = 4;
+        int entryLeft = baseLeft + border;
+        int entryWidth = extraHeight > 0 ? scrollBarLeft - entryLeft - border : baseWidth - 2 * border;
 
         if (Mouse.isButtonDown(0))
         {
@@ -113,25 +141,25 @@ public abstract class GuiComponentList extends GuiComponentBase
             {
                 if (mouseOver(mouseX, mouseY))
                 {
-                    int mouseListY = mouseY - baseTop + (int) scrollDistance - border;
-                    int entryIndex = mouseListY / entryHeight;
-
-                    if (entryLeft <= mouseX && mouseX <= entryLeft + entryWidth && listLength > entryIndex && entryIndex >= 0 && mouseListY >= 0)
+                    for (int entryId = 0; entryId < getSize(); entryId++)
                     {
-                        entryClicked(entryIndex, entryIndex == getSelectedEntry() && System.currentTimeMillis() - lastClickTime < 250L);
-                        setSelectedEntry(entryIndex);
-                        lastClickTime = System.currentTimeMillis();
+                        if (mouseOverEntry(entryId, mouseX, mouseY))
+                        {
+                            entryClicked(entryId, entryId == getSelectedEntry() && System.currentTimeMillis() - lastClickTime < 250L);
+                            lastClickTime = System.currentTimeMillis();
+                            break;
+                        }
                     }
 
                     if (scrollBarLeft <= mouseX && mouseX <= scrollBarLeft + scrollBarWidth)
                     {
                         scrollFactor = -1.0F;
-                        int scrollHeight = getContentHeight() - baseHeight - border;
+                        int scrollHeight = getContentHeight() - baseHeight;
                         if (scrollHeight < 1) scrollHeight = 1;
 
                         int scrollBarHeight = (int) ((float) (baseHeight * baseHeight) / (float) getContentHeight());
                         if (scrollBarHeight < 15) scrollBarHeight = 15;
-                        if (scrollBarHeight > baseHeight - 2 * border) scrollBarHeight = baseHeight - 2 * border;
+                        if (scrollBarHeight > baseHeight - 2 * entryBorder) scrollBarHeight = baseHeight - 2 * border;
 
                         scrollFactor /= (float) (baseHeight - scrollBarHeight) / (float) scrollHeight;
                     }
@@ -160,78 +188,52 @@ public abstract class GuiComponentList extends GuiComponentBase
 
         applyScrollLimits();
 
-        Tessellator tess = Tessellator.getInstance();
-        VertexBuffer worldr = tess.getBuffer();
+        firstEntry = (int) scrollDistance / (entryHeight + entrySpacing);
 
-//        drawGradientRect(left, top, left + width, top + height, 0xFF8B8B8B, 0xFF8B8B8B);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+
         mc.getTextureManager().bindTexture(ELEMENTS);
         drawStichedTexture(left, top, width, height, 0, 44);
 
-        int baseY = baseTop + 2 - (int) scrollDistance;
+        int baseY = baseTop - firstEntry * (entryHeight + entrySpacing) + border;
 
-        for (int entryId = 0; entryId < listLength; ++entryId)
+        for (int entryId = 0; entryId < getSize(); ++entryId)
         {
-            int entryTop = baseY + entryId * entryHeight;
-            int entryBuffer = entryHeight - border;
+            int entryTop = baseY + entryId * (entryHeight + entrySpacing);
+            int entryBuffer = entryHeight - 2 * entryBorder;
 
-            if (entryTop <= baseTop + baseHeight && entryTop + entryBuffer >= baseTop)
+            if (entryTop <= baseTop + baseHeight && entryTop + entryHeight > baseTop)
             {
-                if (highlightSelected && isSelected(entryId))
+                if (mouseOverEntry(entryId, mouseX, mouseY))
                 {
-                    int min = baseLeft;
-                    int max = entryLeft + entryWidth;
-                    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                    GlStateManager.disableTexture2D();
-                    worldr.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-                    worldr.pos(min, entryTop + entryBuffer + 2, 0).tex(0, 1).color(0x60, 0x60, 0x60, 0xFF).endVertex();
-                    worldr.pos(max, entryTop + entryBuffer + 2, 0).tex(1, 1).color(0x60, 0x60, 0x60, 0xFF).endVertex();
-                    worldr.pos(max, entryTop - 2, 0).tex(1, 0).color(0x60, 0x60, 0x60, 0xFF).endVertex();
-                    worldr.pos(min, entryTop - 2, 0).tex(0, 0).color(0x60, 0x60, 0x60, 0xFF).endVertex();
-                    worldr.pos(min + 1, entryTop + entryBuffer + 1, 0).tex(0, 1).color(0x00, 0x00, 0x00, 0xFF).endVertex();
-                    worldr.pos(max - 1, entryTop + entryBuffer + 1, 0).tex(1, 1).color(0x00, 0x00, 0x00, 0xFF).endVertex();
-                    worldr.pos(max - 1, entryTop - 1, 0).tex(1, 0).color(0x00, 0x00, 0x00, 0xFF).endVertex();
-                    worldr.pos(min + 1, entryTop - 1, 0).tex(0, 0).color(0x00, 0x00, 0x00, 0xFF).endVertex();
-                    tess.draw();
-                    GlStateManager.enableTexture2D();
+                    drawRect(entryLeft, entryTop, entryLeft + entryWidth, entryTop + entryHeight, 0x66FFFFFF);
                 }
 
-                drawEntry(entryId, entryLeft, entryTop, entryBuffer, tess);
+                if (isSelected(entryId))
+                {
+                    mc.getTextureManager().bindTexture(ELEMENTS);
+
+                    drawStichedTexture(entryLeft, entryTop, entryWidth, entryHeight, 3, 44);
+                }
+
+                drawEntry(entryId, entryLeft + entryBorder, entryTop + entryBorder, entryBuffer, entryWidth - 2 * entryBorder);
             }
         }
-
-        int extraHeight = getContentHeight() - baseHeight;
 
         if (extraHeight > 0)
         {
             int scrollBarHeight = (baseHeight * baseHeight) / getContentHeight();
-            if (scrollBarHeight < 15) scrollBarHeight = 15;
-            if (scrollBarHeight > baseHeight - border * 2) scrollBarHeight = baseHeight - border * 2;
 
-            int barTop = (int) scrollDistance * (baseHeight - scrollBarHeight) / extraHeight + baseTop;
-            if (barTop < baseTop) barTop = baseTop;
-            GlStateManager.disableTexture2D();
-            worldr.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-            worldr.pos(scrollBarLeft, baseTop + baseHeight, 0.0D).tex(0.0D, 1.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
-            worldr.pos(scrollBarLeft + scrollBarWidth, baseTop + baseHeight, 0.0D).tex(1.0D, 1.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
-            worldr.pos(scrollBarLeft + scrollBarWidth, baseTop, 0.0D).tex(1.0D, 0.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
-            worldr.pos(scrollBarLeft, baseTop, 0.0D).tex(0.0D, 0.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
-            tess.draw();
-            GlStateManager.enableTexture2D();
+            if (scrollBarHeight < 15) scrollBarHeight = 15;
+            if (scrollBarHeight > baseHeight - entryBorder * 2) scrollBarHeight = baseHeight - entryBorder * 2;
+
+            int scrollBarTop = (int) scrollDistance * (baseHeight - scrollBarHeight) / extraHeight + baseTop;
+            if (scrollBarTop < baseTop) scrollBarTop = baseTop;
+
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 
             mc.getTextureManager().bindTexture(ELEMENTS);
-            drawTexture(scrollBarLeft, barTop, scrollBarWidth, scrollBarHeight, 0, 26, 12, 15);
-//            worldr.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-//            worldr.pos(scrollBarLeft, barTop + scrollBarHeight, 0.0D).tex(0.0D, 1.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
-//            worldr.pos(scrollBarLeft + scrollBarWidth, barTop + scrollBarHeight, 0.0D).tex(1.0D, 1.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
-//            worldr.pos(scrollBarLeft + scrollBarWidth, barTop, 0.0D).tex(1.0D, 0.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
-//            worldr.pos(scrollBarLeft, barTop, 0.0D).tex(0.0D, 0.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
-//            tess.draw();
-//            worldr.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-//            worldr.pos(scrollBarLeft, barTop + scrollBarHeight - 1, 0.0D).tex(0.0D, 1.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
-//            worldr.pos(scrollBarLeft + scrollBarWidth - 1, barTop + scrollBarHeight - 1, 0.0D).tex(1.0D, 1.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
-//            worldr.pos(scrollBarLeft + scrollBarWidth - 1, barTop, 0.0D).tex(1.0D, 0.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
-//            worldr.pos(scrollBarLeft, barTop, 0.0D).tex(0.0D, 0.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
-//            tess.draw();
+            drawStichedTexture(scrollBarLeft, scrollBarTop, scrollBarWidth, scrollBarHeight, 0, 41);
         }
 
         GlStateManager.enableTexture2D();
