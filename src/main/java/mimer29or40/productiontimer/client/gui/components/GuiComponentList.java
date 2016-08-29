@@ -202,7 +202,7 @@ public abstract class GuiComponentList extends GuiComponentBase
             int entryTop = baseY + entryId * (entryHeight + entrySpacing);
             int entryBuffer = entryHeight - 2 * entryBorder;
 
-            if (entryTop <= baseTop + baseHeight && entryTop + entryHeight > baseTop)
+            if (entryTop < baseTop + baseHeight && entryTop + entryHeight > baseTop)
             {
                 if (mouseOverEntry(entryId, mouseX, mouseY))
                 {

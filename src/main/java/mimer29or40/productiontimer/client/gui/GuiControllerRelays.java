@@ -47,7 +47,7 @@ public class GuiControllerRelays extends GuiScreen
         guiLeft = (width - xSize) / 2;
         guiTop = (height - ySize) / 2;
 
-        guiListRelay = new GuiComponentListRelay(guiLeft + 7, guiTop + 23, 161, 100, 26);
+        guiListRelay = new GuiComponentListRelay(guiLeft + 7, guiTop + 23, 161, 116, 26);
 
         buttonBack = new GuiComponentButton(0, guiLeft + 7, guiTop + 7, 40, 12, "Back");
         buttonHighlight = new GuiComponentButton(1, guiLeft + 57, guiTop + 7, 61, 12, "Highlight");
@@ -95,7 +95,6 @@ public class GuiControllerRelays extends GuiScreen
     {
         if (keyCode == 1)
         {
-//            mc.displayGuiScreen(parent);
             PTNetwork.sendToServer(new PacketOpenGui(0, parent.tileController.getPos()));
         }
         else
